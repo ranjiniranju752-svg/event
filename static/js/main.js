@@ -1,4 +1,4 @@
-/* ReelScope — shared interface behaviour (no frameworks). */
+/* ScentScope — shared interface behaviour (no frameworks). */
 (() => {
   "use strict";
 

@@ -1,38 +1,38 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}ReelScope — Movie feedback, decoded{% endblock %}
+{% block title %}ScentScope — Perfume reviews, decoded{% endblock %}
 {% block body_class %}page-home{% endblock %}
 
 {% block content %}
 <section class="hero">
   {% if featured %}
-    <div class="hero-media" style="background-image:url('{{ featured.poster.url }}')" aria-hidden="true"></div>
+    <div class="hero-media" style="background-image:url('{{ featured.image.url }}')" aria-hidden="true"></div>
   {% endif %}
   <div class="hero-vignette" aria-hidden="true"></div>
 
   <div class="shell hero-inner">
     <div class="hero-copy" data-reveal>
-      <p class="eyebrow"><span class="live-dot"></span>Audience intelligence, in real time</p>
-      <h1>Every voice<br>shapes the <span class="accent-word">story</span>.</h1>
+      <p class="eyebrow"><span class="live-dot"></span>Fragrance feedback, in the open</p>
+      <h1>Every scent tells a <span class="accent-word">story</span>.</h1>
       <p class="hero-lead">
-        Watch. Rate. Be heard. ReelScope reads between the lines of every review
-        and turns audience opinion into clear, visual insight.
+        Discover, rate and review perfumes. ScentScope reads between the lines
+        of every review and turns opinion into clear, visual insight.
       </p>
       <div class="hero-actions">
-        <a class="btn btn-gold" href="{% url 'movies:list' %}">Explore movies <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-gold" href="{% url 'perfumes:list' %}">Explore perfumes <span aria-hidden="true">&rarr;</span></a>
         {% if featured %}
-          <a class="btn btn-outline" href="{% url 'movies:feedback' featured.slug %}">Rate {{ featured.title|truncatechars:24 }}</a>
+          <a class="btn btn-outline" href="{% url 'perfumes:reviews' featured.slug %}">Review {{ featured.perfume_name|truncatechars:24 }}</a>
         {% endif %}
       </div>
       <dl class="hero-stats">
         <div>
-          <dt>Movies</dt>
-          <dd>{{ stats.movies }}</dd>
+          <dt>Perfumes</dt>
+          <dd>{{ stats.perfumes }}</dd>
         </div>
         <div>
-          <dt>Audience reviews</dt>
-          <dd>{{ stats.feedback }}</dd>
+          <dt>Reviews</dt>
+          <dd>{{ stats.reviews }}</dd>
         </div>
         <div>
           <dt>Average rating</dt>
@@ -43,17 +43,21 @@
 
     {% if featured %}
       <a class="featured-card" href="{{ featured.get_absolute_url }}" data-reveal>
-        <div class="featured-card-poster">
-          <img src="{{ featured.poster.url }}" alt="Poster for {{ featured.title }}">
+        <div class="featured-card-image">
+          {% if featured.image %}
+            <img src="{{ featured.image.url }}" alt="Bottle of {{ featured.perfume_name }}">
+          {% else %}
+            <img src="{% static 'images/perfume-placeholder.svg' %}" alt="No image for {{ featured.perfume_name }}">
+          {% endif %}
         </div>
         <div class="featured-card-info">
-          <span class="featured-label">Top rated by audiences</span>
-          <h2>{{ featured.title }}</h2>
-          <p>{{ featured.get_genre_display }} &middot; {{ featured.release_date|date:"Y" }} &middot; {{ featured.language }}</p>
+          <span class="featured-label">Featured fragrance</span>
+          <h2>{{ featured.perfume_name }}</h2>
+          <p>{{ featured.brand.name }} &middot; {{ featured.get_concentration_display }} &middot; {{ featured.get_gender_category_display }}</p>
           <div class="featured-rating">
             <span class="star-glyph" aria-hidden="true">★</span>
             <strong>{{ featured.average_rating|floatformat:1 }}</strong>
-            <span class="muted">/ 5 · {{ featured.feedback_count }} review{{ featured.feedback_count|pluralize }}</span>
+            <span class="muted">/ 5 &middot; {{ featured.review_count }} review{{ featured.review_count|pluralize }}</span>
           </div>
         </div>
       </a>
@@ -63,11 +67,11 @@
   <div class="hero-scroll" aria-hidden="true"><span></span>Scroll to explore</div>
 </section>
 
-<div class="genre-strip">
-  <div class="shell genre-strip-inner">
-    <span class="genre-label">Genres</span>
-    {% for value, label in genres %}
-      <a href="{% url 'movies:list' %}?genre={{ value }}">{{ label }}</a>
+<div class="family-strip">
+  <div class="shell family-strip-inner">
+    <span class="family-label">Fragrance families</span>
+    {% for family in families %}
+      <a href="{% url 'perfumes:list' %}?family={{ family.slug }}">{{ family.name }}</a>
     {% endfor %}
   </div>
 </div>
@@ -76,23 +80,23 @@
   <div class="shell">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Now showing</p>
+        <p class="eyebrow">New arrivals</p>
         <h2>Fresh in the catalogue</h2>
       </div>
-      <a class="text-link" href="{% url 'movies:list' %}">View all movies <span aria-hidden="true">&rarr;</span></a>
+      <a class="text-link" href="{% url 'perfumes:list' %}">Browse all perfumes <span aria-hidden="true">&rarr;</span></a>
     </div>
 
-    {% if latest_movies %}
-      <div class="movie-grid">
-        {% for movie in latest_movies %}
-          {% include "partials/movie_card.html" with movie=movie %}
+    {% if latest_perfumes %}
+      <div class="perfume-grid">
+        {% for perfume in latest_perfumes %}
+          {% include "partials/perfume_card.html" with perfume=perfume %}
         {% endfor %}
       </div>
     {% else %}
       <div class="empty-panel">
-        <span class="empty-icon" aria-hidden="true">◎</span>
+        <span class="empty-icon" aria-hidden="true">✦</span>
         <h3>The catalogue is empty</h3>
-        <p>Movies added by an administrator will appear here, ready for audience ratings.</p>
+        <p>Perfumes added by an administrator will appear here, ready for reviews.</p>
         {% if user.is_staff %}
           <a class="btn btn-ghost btn-sm" href="{% url 'analytics:dashboard' %}">Open the dashboard</a>
         {% endif %}
@@ -104,9 +108,9 @@
 <section class="section section-band">
   <div class="shell">
     <div class="section-heading centered">
-      <p class="eyebrow">The process</p>
-      <h2>From opinion to insight in three steps</h2>
-      <p class="section-lead">No account required, no waiting, no spreadsheets. Just honest feedback, analysed automatically.</p>
+      <p class="eyebrow">How it works</p>
+      <h2>From first spritz to insight</h2>
+      <p class="section-lead">No account required. No waiting. Just honest fragrance feedback, analysed automatically.</p>
     </div>
 
     <div class="steps-grid">
@@ -115,17 +119,17 @@
         <span class="step-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M10 9.2v5.6l4.6-2.8z"/></svg>
         </span>
-        <h3>Pick a movie</h3>
-        <p>Browse the catalogue and open any film to see its audience pulse before you add your own view.</p>
+        <h3>Pick a perfume</h3>
+        <p>Browse the catalogue and open any fragrance to see its rating pulse before you add your own view.</p>
       </article>
 
       <article class="step-card" data-reveal>
         <span class="step-number">02</span>
         <span class="step-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3.6 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3.6 2.6 5.3 5.9 .9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></svg>
         </span>
         <h3>Rate &amp; write</h3>
-        <p>Give the film one to five stars and say what worked — story, acting, music, pacing, anything.</p>
+        <p>Rate overall experience, longevity, projection, sillage, fragrance quality and value for money.</p>
       </article>
 
       <article class="step-card" data-reveal>
@@ -134,45 +138,45 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V5m0 14h16"/><path d="m7 15 4-4 3 2.5L19 8"/><circle cx="19" cy="8" r="1.4"/></svg>
         </span>
         <h3>See the signal</h3>
-        <p>Every message is scored for sentiment and distilled into the themes audiences love and complain about.</p>
+        <p>Every message is scored for sentiment and distilled into the themes fragrance lovers praise and critique.</p>
       </article>
     </div>
   </div>
 </section>
 
-{% if top_movies %}
-  <section class="section">
-    <div class="shell">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Audience favourites</p>
-          <h2>Top rated right now</h2>
-        </div>
-        <a class="text-link" href="{% url 'movies:list' %}">Browse everything <span aria-hidden="true">&rarr;</span></a>
+{% if top_perfumes %}
+<section class="section">
+  <div class="shell">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Community favourites</p>
+        <h2>Top rated right now</h2>
       </div>
-      <div class="movie-grid movie-grid-three">
-        {% for movie in top_movies %}
-          {% include "partials/movie_card.html" with movie=movie %}
-        {% endfor %}
-      </div>
+      <a class="text-link" href="{% url 'perfumes:list' %}?sort=rating">See the full ranking <span aria-hidden="true">&rarr;</span></a>
     </div>
-  </section>
+    <div class="perfume-grid perfume-grid-three">
+      {% for perfume in top_perfumes %}
+        {% include "partials/perfume_card.html" with perfume=perfume %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
 {% endif %}
 
 <section class="section">
   <div class="shell">
     <div class="insight-band" data-reveal>
       <div class="insight-copy">
-        <p class="eyebrow">For the people behind the screen</p>
-        <h2>See what audiences actually mean.</h2>
+        <p class="eyebrow">For the people behind the scent</p>
+        <h2>See what wearers actually mean.</h2>
         <p>
-          Ratings alone never tell the whole story. ReelScope pairs every star
-          with the words around it, then groups the praise and the complaints
-          into themes you can act on.
+          Star ratings alone never tell the whole story. ScentScope pairs every
+          star with the words around it, then groups the praise and the
+          critiques into themes you can act on.
         </p>
         <ul class="check-list">
-          <li>Sentiment split for every film</li>
-          <li>Common positive aspects and recurring complaints</li>
+          <li>Sentiment split for every perfume</li>
+          <li>Common praise and recurring critiques</li>
           <li>Rating and volume trends over time</li>
         </ul>
       </div>
@@ -181,7 +185,7 @@
           <a class="btn btn-gold" href="{% url 'analytics:dashboard' %}">Open dashboard</a>
         {% else %}
           <a class="btn btn-gold" href="{% url 'accounts:login' %}?next={% url 'analytics:dashboard' %}">Staff sign in</a>
-          <p class="hint">Accounts with staff access only.</p>
+          <p class="hint">Staff access only.</p>
         {% endif %}
       </div>
     </div>

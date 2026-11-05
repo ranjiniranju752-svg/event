@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Staff dashboard — ReelScope{% endblock %}</title>
+  <title>{% block title %}Staff dashboard — ScentScope{% endblock %}</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js" defer></script>
@@ -21,7 +21,7 @@
     <aside class="staff-sidebar" id="staff-sidebar" data-staff-sidebar>
       <a class="brand staff-brand" href="{% url 'analytics:dashboard' %}">
         <img class="brand-logo" src="{% static 'images/logo.svg' %}" alt="" width="32" height="32">
-        <span class="brand-word">REEL<span>SCOPE</span></span>
+        <span class="brand-word">SCENT<span>SCOPE</span></span>
         <span class="staff-badge">Staff</span>
       </a>
 
@@ -32,9 +32,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
             Dashboard
           </a>
-          <a class="staff-nav-link{% if request.resolver_match.url_name == 'movie_list_staff' or request.resolver_match.url_name == 'movie_add' or request.resolver_match.url_name == 'movie_edit' %} is-active{% endif %}" href="{% url 'movies_staff:movie_list_staff' %}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19.5" cy="12" r="1.2"/></svg>
-            Manage Movies
+          <a class="staff-nav-link{% if request.resolver_match.url_name == 'perfume_list_staff' or request.resolver_match.url_name == 'perfume_add' or request.resolver_match.url_name == 'perfume_edit' %} is-active{% endif %}" href="{% url 'perfumes_staff:perfume_list_staff' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 3v18h18V3H3zm2 16h6v-6H5zM13 3h6v12h-6V3zM3 13h6v6H3v-6z"/></svg>
+            Manage perfumes
           </a>
         </div>
 

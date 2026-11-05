@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Email verification — ReelScope{% endblock %}
+{% block title %}Email verification — ScentScope{% endblock %}
 {% block body_class %}page-auth{% endblock %}
 
 {% block content %}
@@ -11,7 +11,7 @@
         <span class="success-mark" aria-hidden="true">✓</span>
         <p class="eyebrow">Email verified</p>
         <h1>Your account is <span class="accent-word">active</span>.</h1>
-        <p class="success-lead">You can now log in to ReelScope with your username and password.</p>
+        <p class="success-lead">You can now log in to ScentScope with your username and password.</p>
         <a class="btn btn-gold" href="{% url 'accounts:login' %}">Log in</a>
       {% elif status == "expired" %}
         <span class="state-mark" aria-hidden="true">!</span>

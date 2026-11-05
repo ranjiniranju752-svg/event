@@ -1,0 +1,146 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}{{ action }} perfume — ScentScope Staff{% endblock %}
+{% block staff_title %}{{ action }} Perfume{% endblock %}
+
+{% block staff_content %}
+<div class="staff-page-head">
+  <div>
+    <p class="eyebrow">{{ action }} perfume</p>
+    <h1>{{ perfume.perfume_name|default:"New perfume" }}</h1>
+    <p class="staff-lead">Enter the perfume details. Unpublished perfumes stay hidden from public visitors.</p>
+  </div>
+  <div class="staff-page-meta">
+    <a class="btn btn-ghost" href="{% url 'perfumes_staff:perfume_list_staff' %}">Back to catalogue</a>
+  </div>
+</div>
+
+<div class="staff-form">
+  <form method="post" enctype="multipart/form-data" class="stack-form" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="form-alert" role="alert">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="form-grid">
+      <div class="field field-full">
+        <label class="field-label" for="{{ form.perfume_name.id_for_label }}">{{ form.perfume_name.label }}</label>
+        {{ form.perfume_name }}
+        {{ form.perfume_name.errors }}
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="{{ form.brand.id_for_label }}">{{ form.brand.label }}</label>
+        {{ form.brand }}
+        {{ form.brand.errors }}
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="{{ form.fragrance_family.id_for_label }}">{{ form.fragrance_family.label }}</label>
+        {{ form.fragrance_family }}
+        {{ form.fragrance_family.errors }}
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="{{ form.concentration.id_for_label }}">{{ form.concentration.label }}</label>
+          {{ form.concentration }}
+          {{ form.concentration.errors }}
+        </div>
+        <div class="field">
+          <label class="field-label" for="{{ form.gender_category.id_for_label }}">{{ form.gender_category.label }}</label>
+          {{ form.gender_category }}
+          {{ form.gender_category.errors }}
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="{{ form.launch_year.id_for_label }}">{{ form.launch_year.label }}</label>
+          {{ form.launch_year }}
+          {{ form.launch_year.errors }}
+        </div>
+        <div class="field">
+          <label class="field-label" for="{{ form.price.id_for_label }}">{{ form.price.label }}</label>
+          {{ form.price }}
+          {{ form.price.errors }}
+        </div>
+        <div class="field">
+          <label class="field-label" for="{{ form.volume_ml.id_for_label }}">{{ form.volume_ml.label }}</label>
+          {{ form.volume_ml }}
+          {{ form.volume_ml.errors }}
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="{{ form.longevity_category.id_for_label }}">{{ form.longevity_category.label }}</label>
+          {{ form.longevity_category }}
+          {{ form.longevity_category.errors }}
+        </div>
+        <div class="field">
+          <label class="field-label" for="{{ form.sillage_category.id_for_label }}">{{ form.sillage_category.label }}</label>
+          {{ form.sillage_category }}
+          {{ form.sillage_category.errors }}
+        </div>
+        <div class="field">
+          <label class="field-label" for="{{ form.availability_status.id_for_label }}">{{ form.availability_status.label }}</label>
+          {{ form.availability_status }}
+          {{ form.availability_status.errors }}
+        </div>
+      </div>
+
+      <div class="field field-full">
+        <label class="field-label" for="{{ form.top_notes.id_for_label }}">Top notes</label>
+        {{ form.top_notes }}
+        {{ form.top_notes.errors }}
+        <span class="field-hint">Comma-separated, e.g. Bergamot, Pink Pepper, Lemon</span>
+      </div>
+      <div class="field field-full">
+        <label class="field-label" for="{{ form.middle_notes.id_for_label }}">Middle / heart notes</label>
+        {{ form.middle_notes }}
+        {{ form.middle_notes.errors }}
+        <span class="field-hint">Comma-separated, e.g. Jasmine, Rose, Iris</span>
+      </div>
+      <div class="field field-full">
+        <label class="field-label" for="{{ form.base_notes.id_for_label }}">Base notes</label>
+        {{ form.base_notes }}
+        {{ form.base_notes.errors }}
+        <span class="field-hint">Comma-separated, e.g. Vanilla, Patchouli, Musk</span>
+      </div>
+
+      <div class="field field-full">
+        <label class="field-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+        {{ form.description }}
+        {{ form.description.errors }}
+      </div>
+
+      <div class="field field-full">
+        <label class="field-label" for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
+        {{ form.image }}
+        {{ form.image.errors }}
+        {% if perfume and perfume.image %}
+          <p class="field-hint">Current image: <a href="{{ perfume.image.url }}" target="_blank">View</a></p>
+        {% endif %}
+      </div>
+
+      <div class="field field-full">
+        <label class="field-checkbox">
+          {{ form.is_published }}
+          <span>{{ form.is_published.label }}</span>
+          <span class="field-hint">{{ form.is_published.help_text }}</span>
+        </label>
+        {{ form.is_published.errors }}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{% url 'perfumes_staff:perfume_list_staff' %}">Cancel</a>
+      <button type="submit" class="btn btn-gold">{{ action }} perfume</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

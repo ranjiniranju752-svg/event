@@ -1,160 +1,199 @@
-"""Movie ranking service.
+"""Perfume ranking service.
 
-Implements a transparent weighted scoring system for movies based on actual
-feedback and sentiment analysis records stored in SQLite.
+Implements a transparent, explainable weighted scoring system for perfumes
+based on actual reviews and sentiment analysis records stored in SQLite.
 
 Formula:
-    Final Score = (Rating Score × 0.50)
-                + (Positive Sentiment Percentage × 0.30)
-                + (Feedback Confidence × 0.20)
+    Final Score =
+        (Overall Rating Score × 0.35) +
+        (Positive Sentiment Score × 0.25) +
+        (Feedback Confidence × 0.15) +
+        (Longevity Score × 0.10) +
+        (Projection Score × 0.10) +
+        (Value Score × 0.05)
 
-Components:
-    Rating Score        = (Average Rating / 5) × 100          (0–100)
-    Positive Sentiment % = (Positive / Analyzed) × 100        (0–100)
-    Feedback Confidence = min(Feedback Count / MIN_FEEDBACK, 1) × 100   (0–100)
+Components (all normalized to 0–100):
+    Overall Rating Score   = (Average overall rating / 5) × 100
+    Positive Sentiment %   = (Positive analysed reviews / Total analysed reviews) × 100
+    Feedback Confidence    = min(Review count / CONFIDENCE_DENOMINATOR, 1) × 100
+    Longevity Score        = (Average longevity rating / 5) × 100
+    Projection Score       = (Average projection rating / 5) × 100
+    Value Score            = (Average value-for-money rating / 5) × 100
 
-Minimum feedback threshold (centralized):
-    MIN_FEEDBACK_FOR_RANKING = 5  (movies below this are excluded from ranking)
+Minimum review threshold (centralized):
+    MIN_REVIEWS_FOR_RANKING = 5  (perfumes below this are excluded from ranking)
     CONFIDENCE_DENOMINATOR   = 20 (confidence caps at 100% at 20 submissions)
 
 All values are computed from live database records. Nothing is hardcoded or
-stored as a stale score on the Movie model.
+stored as a stale score on the Perfume model.
 """
 
 from django.db.models import Avg, Count, Q
-from django.db.models.functions import Coalesce
 
-from feedback.models import SentimentAnalysis
-from movies.models import Movie
+from perfumes.models import Perfume
+from reviews.models import Review, ReviewSentiment
 
 # Centralized thresholds — easy to adjust in one place.
-MIN_FEEDBACK_FOR_RANKING = 5
+MIN_REVIEWS_FOR_RANKING = 5
 CONFIDENCE_DENOMINATOR = 20
 
 # Weighted formula constants (must sum to 1.0).
-WEIGHT_RATING = 0.50
-WEIGHT_SENTIMENT = 0.30
-WEIGHT_CONFIDENCE = 0.20
+WEIGHT_OVERALL = 0.35
+WEIGHT_SENTIMENT = 0.25
+WEIGHT_CONFIDENCE = 0.15
+WEIGHT_LONGEVITY = 0.10
+WEIGHT_PROJECTION = 0.10
+WEIGHT_VALUE = 0.05
+
+SUCCESS = ReviewSentiment.Status.SUCCESS
 
 
-def _movie_feedback_stats():
-    """Return a queryset of movies annotated with feedback statistics.
+def _perfume_review_stats():
+    """Return a queryset of perfumes annotated with review statistics.
 
-    Each movie is annotated with:
-        total_feedback          — count of all Feedback rows
-        analyzed_feedback       — count of successfully analyzed feedback
-        positive_feedback       — count of positive text sentiment
-        negative_feedback       — count of negative text sentiment
-        neutral_feedback        — count of neutral text sentiment
-        average_rating          — average star rating (may be None)
+    Each perfume is annotated with:
+        total_reviews          — count of all Review rows
+        approved_reviews       — count of approved Review rows
+        average_overall_rating — average overall rating (may be None)
+        avg_longevity          — average longevity rating
+        avg_projection         — average projection rating
+        avg_value              — average value-for-money rating
+        analyzed_reviews       — count of successfully analysed reviews
+        positive_reviews       — count of positive text sentiment
+        negative_reviews       — count of negative text sentiment
+        neutral_reviews        — count of neutral text sentiment
     """
     return (
-        Movie.objects.filter(is_published=True)
+        Perfume.objects.filter(is_published=True)
         .annotate(
-            total_feedback=Count("feedback", distinct=True),
-            average_rating=Avg("feedback__rating"),
-            analyzed_feedback=Count(
-                "feedback__analysis",
-                filter=Q(feedback__analysis__status=SentimentAnalysis.Status.SUCCESS),
+            total_reviews=Count("reviews", distinct=True),
+            average_overall_rating=Avg("reviews__overall_rating"),
+            avg_longevity=Avg("reviews__longevity_rating"),
+            avg_projection=Avg("reviews__projection_rating"),
+            avg_value=Avg("reviews__value_for_money_rating"),
+            analyzed_reviews=Count(
+                "reviews__sentiment",
+                filter=Q(reviews__sentiment__analysis_status=SUCCESS),
                 distinct=True,
             ),
-            positive_feedback=Count(
-                "feedback__analysis",
+            positive_reviews=Count(
+                "reviews__sentiment",
                 filter=Q(
-                    feedback__analysis__status=SentimentAnalysis.Status.SUCCESS,
-                    feedback__analysis__text_sentiment="positive",
+                    reviews__sentiment__analysis_status=SUCCESS,
+                    reviews__sentiment__sentiment_label="positive",
                 ),
                 distinct=True,
             ),
-            negative_feedback=Count(
-                "feedback__analysis",
+            negative_reviews=Count(
+                "reviews__sentiment",
                 filter=Q(
-                    feedback__analysis__status=SentimentAnalysis.Status.SUCCESS,
-                    feedback__analysis__text_sentiment="negative",
+                    reviews__sentiment__analysis_status=SUCCESS,
+                    reviews__sentiment__sentiment_label="negative",
                 ),
                 distinct=True,
             ),
-            neutral_feedback=Count(
-                "feedback__analysis",
+            neutral_reviews=Count(
+                "reviews__sentiment",
                 filter=Q(
-                    feedback__analysis__status=SentimentAnalysis.Status.SUCCESS,
-                    feedback__analysis__text_sentiment="neutral",
+                    reviews__sentiment__analysis_status=SUCCESS,
+                    reviews__sentiment__sentiment_label="neutral",
                 ),
                 distinct=True,
             ),
         )
-        .order_by("-total_feedback")
+        .order_by("-total_reviews")
     )
 
 
-def calculate_movie_scores():
-    """Calculate ranking scores for all published movies.
+def calculate_perfume_scores():
+    """Calculate ranking scores for all published perfumes.
 
     Returns:
-        A list of dicts, one per published movie, ordered by final score
+        A list of dicts, one per published perfume, ordered by final score
         (highest first). Each dict contains:
 
-            movie               — Movie instance
-            rank                — int or None (None if excluded)
-            total_feedback      — int
-            average_rating      — float or None
-            rating_score        — float (0–100) or None
-            analyzed_feedback   — int
-            positive_feedback   — int
-            negative_feedback   — int
-            neutral_feedback    — int
-            positive_pct        — float (0–100) or None
-            confidence          — float (0–100)
-            final_score         — float (0–100) or None
-            ranking_available   — bool (True if >= min feedback AND has analyzed sentiment)
-            insufficient_reason — str or None
+            perfume                — Perfume instance
+            rank                   — int or None (None if excluded)
+            total_reviews          — int
+            average_overall_rating — float or None
+            overall_score          — float (0–100) or None
+            analyzed_reviews       — int
+            positive_reviews       — int
+            negative_reviews       — int
+            neutral_reviews        — int
+            sentiment_score        — float (0–100) or None
+            confidence             — float (0–100)
+            longevity_score        — float (0–100) or None
+            projection_score       — float (0–100) or None
+            value_score            — float (0–100) or None
+            final_score            — float (0–100) or None
+            ranking_available      — bool (True if >= min reviews AND has sentiment)
+            insufficient_reason    — str or None
     """
-    movies = _movie_feedback_stats()
+    perfumes = _perfume_review_stats()
     results = []
 
-    for movie in movies:
-        total = movie.total_feedback or 0
-        avg_rating = movie.average_rating
-        analyzed = movie.analyzed_feedback or 0
-        positive = movie.positive_feedback or 0
-        negative = movie.negative_feedback or 0
-        neutral = movie.neutral_feedback or 0
+    for perfume in perfumes:
+        total = perfume.total_reviews or 0
+        avg_rating = perfume.average_overall_rating
+        analyzed = perfume.analyzed_reviews or 0
+        positive = perfume.positive_reviews or 0
+        negative = perfume.negative_reviews or 0
+        neutral = perfume.neutral_reviews or 0
 
         # Determine if ranking is available.
-        # Need at least MIN_FEEDBACK_FOR_RANKING submissions AND at least one
-        # successfully analyzed feedback record for sentiment data.
-        has_min_feedback = total >= MIN_FEEDBACK_FOR_RANKING
+        # Need at least MIN_REVIEWS_FOR_RANKING submissions AND at least one
+        # successfully analysed sentiment record for sentiment data.
+        has_min_reviews = total >= MIN_REVIEWS_FOR_RANKING
         has_sentiment = analyzed > 0
-        ranking_available = has_min_feedback and has_sentiment
+        ranking_available = has_min_reviews and has_sentiment
 
         # Component calculations.
         if avg_rating is not None:
-            rating_score = (avg_rating / 5.0) * 100.0
+            overall_score = (avg_rating / 5.0) * 100.0
         else:
-            rating_score = None
+            overall_score = None
+
+        if perfume.avg_longevity is not None:
+            longevity_score = (perfume.avg_longevity / 5.0) * 100.0
+        else:
+            longevity_score = None
+
+        if perfume.avg_projection is not None:
+            projection_score = (perfume.avg_projection / 5.0) * 100.0
+        else:
+            projection_score = None
+
+        if perfume.avg_value is not None:
+            value_score = (perfume.avg_value / 5.0) * 100.0
+        else:
+            value_score = None
 
         if analyzed > 0:
-            positive_pct = (positive / analyzed) * 100.0
+            sentiment_score = (positive / analyzed) * 100.0
         else:
-            positive_pct = None
+            sentiment_score = None
 
         confidence = (min(total, CONFIDENCE_DENOMINATOR) / CONFIDENCE_DENOMINATOR) * 100.0
 
         # Final weighted score (only when ranking is available).
         if ranking_available:
             final_score = (
-                (rating_score * WEIGHT_RATING)
-                + (positive_pct * WEIGHT_SENTIMENT)
+                (overall_score * WEIGHT_OVERALL)
+                + (sentiment_score * WEIGHT_SENTIMENT)
                 + (confidence * WEIGHT_CONFIDENCE)
+                + (longevity_score * WEIGHT_LONGEVITY)
+                + (projection_score * WEIGHT_PROJECTION)
+                + (value_score * WEIGHT_VALUE)
             )
         else:
             final_score = None
 
         # Determine insufficient-data reason.
-        if total < MIN_FEEDBACK_FOR_RANKING:
+        if total < MIN_REVIEWS_FOR_RANKING:
             insufficient_reason = (
-                f"Needs {MIN_FEEDBACK_FOR_RANKING - total} more "
-                f"submission{'s' if MIN_FEEDBACK_FOR_RANKING - total != 1 else ''} "
+                f"Needs {MIN_REVIEWS_FOR_RANKING - total} more "
+                f"submission{'s' if MIN_REVIEWS_FOR_RANKING - total != 1 else ''} "
                 f"for reliable ranking."
             )
         elif not has_sentiment:
@@ -167,48 +206,51 @@ def calculate_movie_scores():
 
         results.append(
             {
-                "movie": movie,
-                "total_feedback": total,
-                "average_rating": round(avg_rating, 2) if avg_rating is not None else None,
-                "rating_score": round(rating_score, 2) if rating_score is not None else None,
-                "analyzed_feedback": analyzed,
-                "positive_feedback": positive,
-                "negative_feedback": negative,
-                "neutral_feedback": neutral,
-                "positive_pct": round(positive_pct, 1) if positive_pct is not None else None,
+                "perfume": perfume,
+                "total_reviews": total,
+                "average_overall_rating": round(avg_rating, 2) if avg_rating is not None else None,
+                "overall_score": round(overall_score, 2) if overall_score is not None else None,
+                "analyzed_reviews": analyzed,
+                "positive_reviews": positive,
+                "negative_reviews": negative,
+                "neutral_reviews": neutral,
+                "sentiment_score": round(sentiment_score, 1) if sentiment_score is not None else None,
                 "confidence": round(confidence, 1),
+                "longevity_score": round(longevity_score, 2) if longevity_score is not None else None,
+                "projection_score": round(projection_score, 2) if projection_score is not None else None,
+                "value_score": round(value_score, 2) if value_score is not None else None,
                 "final_score": round(final_score, 2) if final_score is not None else None,
                 "ranking_available": ranking_available,
                 "insufficient_reason": insufficient_reason,
             }
         )
 
-    # Sort: movies with available ranking first (by final score desc),
-    # then movies with insufficient data (by total feedback desc).
-    # Tie-break: higher average rating, then higher feedback count.
+    # Sort: perfumes with available ranking first (by final score desc),
+    # then perfumes with insufficient data (by total reviews desc).
+    # Tie-break: higher average rating, then higher review count.
     available = [r for r in results if r["ranking_available"]]
     unavailable = [r for r in results if not r["ranking_available"]]
 
     available.sort(
         key=lambda r: (
             r["final_score"] if r["final_score"] is not None else -1,
-            r["average_rating"] if r["average_rating"] is not None else -1,
-            r["total_feedback"],
+            r["average_overall_rating"] if r["average_overall_rating"] is not None else -1,
+            r["total_reviews"],
         ),
         reverse=True,
     )
 
     unavailable.sort(
         key=lambda r: (
-            r["total_feedback"],
-            r["average_rating"] if r["average_rating"] is not None else -1,
+            r["total_reviews"],
+            r["average_overall_rating"] if r["average_overall_rating"] is not None else -1,
         ),
         reverse=True,
     )
 
     sorted_results = available + unavailable
 
-    # Assign ranks only to movies with available ranking.
+    # Assign ranks only to perfumes with available ranking.
     for rank, result in enumerate(sorted_results, start=1):
         if result["ranking_available"]:
             result["rank"] = rank
@@ -218,51 +260,51 @@ def calculate_movie_scores():
     return sorted_results
 
 
-def get_ranked_movies(limit=None):
-    """Return movies eligible for reliable ranking, ordered by final score.
+def get_ranked_perfumes(limit=None):
+    """Return perfumes eligible for reliable ranking, ordered by final score.
 
     Args:
-        limit: Maximum number of movies to return (None = all).
+        limit: Maximum number of perfumes to return (None = all).
 
     Returns:
-        List of result dicts (see calculate_movie_scores) for movies where
+        List of result dicts (see calculate_perfume_scores) for perfumes where
         ranking_available is True.
     """
-    results = calculate_movie_scores()
+    results = calculate_perfume_scores()
     ranked = [r for r in results if r["ranking_available"]]
     if limit is not None:
         ranked = ranked[:limit]
     return ranked
 
 
-def get_insufficient_data_movies(limit=None):
-    """Return movies that do not qualify for reliable ranking.
+def get_insufficient_data_perfumes(limit=None):
+    """Return perfumes that do not qualify for reliable ranking.
 
     Args:
-        limit: Maximum number of movies to return (None = all).
+        limit: Maximum number of perfumes to return (None = all).
 
     Returns:
-        List of result dicts for movies where ranking_available is False.
+        List of result dicts for perfumes where ranking_available is False.
     """
-    results = calculate_movie_scores()
+    results = calculate_perfume_scores()
     insufficient = [r for r in results if not r["ranking_available"]]
     if limit is not None:
         insufficient = insufficient[:limit]
     return insufficient
 
 
-def get_movie_ranking(movie):
-    """Return ranking info for a single movie.
+def get_perfume_ranking(perfume):
+    """Return ranking info for a single perfume.
 
     Args:
-        movie: A Movie instance.
+        perfume: A Perfume instance.
 
     Returns:
-        A result dict (see calculate_movie_scores) for the given movie,
-        or None if the movie is not published.
+        A result dict (see calculate_perfume_scores) for the given perfume,
+        or None if the perfume is not published.
     """
-    results = calculate_movie_scores()
+    results = calculate_perfume_scores()
     for result in results:
-        if result["movie"].pk == movie.pk:
+        if result["perfume"].pk == perfume.pk:
             return result
     return None

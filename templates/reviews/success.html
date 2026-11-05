@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Review received — ScentScope{% endblock %}
+{% block body_class %}page-success{% endblock %}
+
+{% block content %}
+<section class="section success-section">
+  <div class="shell shell-small">
+    <div class="panel success-panel">
+      <span class="success-mark" aria-hidden="true">✓</span>
+      <p class="eyebrow">Review received</p>
+      <h1>Your voice is <span class="accent-word">in the room</span>.</h1>
+      <p class="success-lead">
+        Thank you for reviewing <strong>{{ review.perfume.perfume_name }}</strong>. Your
+        submission and its sentiment analysis are now part of the fragrance picture.
+      </p>
+
+      <div class="tracking-card">
+        <span class="tracking-label">Your Tracking ID</span>
+        <div class="tracking-value-row">
+          <code class="tracking-value" data-copy-value>{{ review.tracking_id }}</code>
+          <button type="button" class="btn btn-ghost btn-sm" data-copy-button>Copy</button>
+        </div>
+        <p class="hint">
+          Save this ID to revisit your review and see its sentiment result at any time.
+        </p>
+      </div>
+
+      <dl class="success-summary">
+        <div><dt>Perfume</dt><dd>{{ review.perfume.perfume_name }}</dd></div>
+        <div><dt>Overall rating</dt><dd>{{ review.overall_rating }} / 5</dd></div>
+        <div><dt>Sentiment</dt><dd>{% include "partials/sentiment_badge.html" with analysis=review.sentiment %}</dd></div>
+      </dl>
+
+      <div class="success-actions">
+        <a class="btn btn-gold" href="{% url 'track' %}">Track this submission</a>
+        <a class="btn btn-outline" href="{{ review.perfume.get_absolute_url }}">Back to the perfume</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

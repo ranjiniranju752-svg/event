@@ -1,0 +1,44 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Delete perfume — ScentScope Staff{% endblock %}
+{% block staff_title %}Delete Perfume{% endblock %}
+
+{% block staff_content %}
+<div class="staff-page-head">
+  <div>
+    <p class="eyebrow">Delete perfume</p>
+    <h1>Delete "{{ perfume.perfume_name }}"?</h1>
+    <p class="staff-lead">This cannot be undone. All associated reviews will also be removed.</p>
+  </div>
+  <div class="staff-page-meta">
+    <a class="btn btn-ghost" href="{% url 'perfumes_staff:perfume_list_staff' %}">Back to catalogue</a>
+  </div>
+</div>
+
+<div class="staff-form">
+  <div class="panel panel-soft">
+    <div class="panel-heading">
+      <h2 class="aside-title">Perfume details</h2>
+    </div>
+    <dl class="facts">
+      <div><dt>Perfume</dt><dd>{{ perfume.perfume_name }}</dd></div>
+      <div><dt>Brand</dt><dd>{{ perfume.brand.name }}</dd></div>
+      <div><dt>Fragrance family</dt><dd>{{ perfume.get_fragrance_family_display }}</dd></div>
+      <div><dt>Concentration</dt><dd>{{ perfume.get_concentration_display }}</dd></div>
+      <div><dt>Status</dt><dd>{% if perfume.is_published %}Published{% else %}Unpublished{% endif %}</dd></div>
+      <div><dt>Review submissions</dt><dd>{{ review_count }}</dd></div>
+    </dl>
+    <p class="form-alert" role="alert" style="margin-top: 1rem;">
+      Deleting this perfume will also permanently delete all {{ review_count }} review submission{{ review_count|pluralize }} associated with it.
+    </p>
+  </div>
+
+  <form method="post" class="stack-form" novalidate>
+    {% csrf_token %}
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{% url 'perfumes_staff:perfume_list_staff' %}">Cancel</a>
+      <button type="submit" class="btn btn-gold is-danger">Delete perfume</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

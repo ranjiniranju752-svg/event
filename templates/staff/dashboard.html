@@ -1,51 +1,51 @@
 {% extends "staff/base_staff.html" %}
 
-{% block title %}Audience overview — ReelScope Staff{% endblock %}
-{% block staff_title %}Audience overview{% endblock %}
+{% block title %}Fragrance overview — ScentScope Staff{% endblock %}
+{% block staff_title %}Fragrance overview{% endblock %}
 
 {% block staff_content %}
 <div class="staff-page-head">
   <div>
     <p class="eyebrow">Dashboard</p>
-    <h1>What audiences are telling you.</h1>
+    <h1>What wearers are telling you.</h1>
     <p class="staff-lead">Live totals, sentiment and theme analysis across the whole catalogue.</p>
   </div>
   <div class="staff-page-meta">
     <span class="meta-chip">{{ today|date:"F j, Y" }}</span>
-    <a class="btn btn-gold btn-sm" href="{% url 'movies:list' %}">Browse catalogue</a>
+    <a class="btn btn-gold btn-sm" href="{% url 'perfumes:list' %}">Browse catalogue</a>
   </div>
 </div>
 
 <div class="kpi-grid">
   <article class="kpi-card">
-    <span class="kpi-label">Movies</span>
-    <strong class="kpi-value">{{ total_movies }}</strong>
+    <span class="kpi-label">Perfumes</span>
+    <strong class="kpi-value">{{ total_perfumes }}</strong>
     <span class="kpi-foot">In the catalogue</span>
   </article>
   <article class="kpi-card">
-    <span class="kpi-label">Feedback</span>
-    <strong class="kpi-value">{{ total_feedback }}</strong>
+    <span class="kpi-label">Reviews</span>
+    <strong class="kpi-value">{{ total_reviews }}</strong>
     <span class="kpi-foot">Submissions received</span>
   </article>
   <article class="kpi-card">
     <span class="kpi-label">Average rating</span>
-    <strong class="kpi-value">{% if total_feedback %}{{ average_rating }}{% else %}&mdash;{% endif %}<span class="kpi-unit">{% if total_feedback %}/5{% endif %}</span></strong>
+    <strong class="kpi-value">{% if total_reviews %}{{ average_rating }}{% else %}&mdash;{% endif %}<span class="kpi-unit">{% if total_reviews %}/5{% endif %}</span></strong>
     <span class="kpi-foot">Across all star ratings</span>
   </article>
   <article class="kpi-card is-positive">
     <span class="kpi-label">Positive</span>
     <strong class="kpi-value" data-sentiment-count="positive">{{ sentiment.counts.positive }}</strong>
-    <span class="kpi-foot"><span data-sentiment-percent="positive">{{ sentiment.percentages.positive }}</span>% of analysed feedback</span>
+    <span class="kpi-foot"><span data-sentiment-percent="positive">{{ sentiment.percentages.positive }}</span>% of analysed reviews</span>
   </article>
   <article class="kpi-card is-neutral">
     <span class="kpi-label">Neutral</span>
     <strong class="kpi-value" data-sentiment-count="neutral">{{ sentiment.counts.neutral }}</strong>
-    <span class="kpi-foot"><span data-sentiment-percent="neutral">{{ sentiment.percentages.neutral }}</span>% of analysed feedback</span>
+    <span class="kpi-foot"><span data-sentiment-percent="neutral">{{ sentiment.percentages.neutral }}</span>% of analysed reviews</span>
   </article>
   <article class="kpi-card is-negative">
     <span class="kpi-label">Negative</span>
     <strong class="kpi-value" data-sentiment-count="negative">{{ sentiment.counts.negative }}</strong>
-    <span class="kpi-foot"><span data-sentiment-percent="negative">{{ sentiment.percentages.negative }}</span>% of analysed feedback</span>
+    <span class="kpi-foot"><span data-sentiment-percent="negative">{{ sentiment.percentages.negative }}</span>% of analysed reviews</span>
   </article>
 </div>
 
@@ -65,14 +65,14 @@
   <section class="chart-card chart-card-line">
     <div class="chart-head">
       <div>
-        <h2>Feedback trend</h2>
+        <h2>Review trend</h2>
         <p>Daily volume with positive and negative lines, last 30 days.</p>
       </div>
       <span class="chart-tag">30 days</span>
     </div>
     <div class="chart-holder">
-      <canvas id="trendLine" aria-label="Feedback trend over the last 30 days" role="img"></canvas>
-      <p class="chart-empty" data-chart-empty="trendLine" hidden>No feedback in this period yet.</p>
+      <canvas id="trendLine" aria-label="Review trend over the last 30 days" role="img"></canvas>
+      <p class="chart-empty" data-chart-empty="trendLine" hidden>No reviews in this period yet.</p>
     </div>
   </section>
 
@@ -80,12 +80,12 @@
     <div class="chart-head">
       <div>
         <h2>Sentiment split</h2>
-        <p>Analysed written feedback.</p>
+        <p>Analysed written reviews.</p>
       </div>
     </div>
     <div class="chart-holder chart-holder-doughnut">
       <canvas id="sentimentPie" aria-label="Sentiment distribution" role="img"></canvas>
-      <p class="chart-empty" data-chart-empty="sentimentPie" hidden>No analysed feedback yet.</p>
+      <p class="chart-empty" data-chart-empty="sentimentPie" hidden>No analysed reviews yet.</p>
     </div>
     <div class="chart-legend">
       <span><i class="dot is-positive"></i>Positive <strong data-sentiment-percent="positive">{{ sentiment.percentages.positive }}%</strong></span>
@@ -97,12 +97,12 @@
   <section class="chart-card">
     <div class="chart-head">
       <div>
-        <h2>Movie ratings</h2>
-        <p>Average star rating per movie.</p>
+        <h2>Perfume ratings</h2>
+        <p>Average star rating per perfume.</p>
       </div>
     </div>
     <div class="chart-holder">
-      <canvas id="ratingsBar" aria-label="Average rating by movie" role="img"></canvas>
+      <canvas id="ratingsBar" aria-label="Average rating by perfume" role="img"></canvas>
       <p class="chart-empty" data-chart-empty="ratingsBar" hidden>No ratings yet.</p>
     </div>
   </section>
@@ -110,13 +110,13 @@
   <section class="chart-card">
     <div class="chart-head">
       <div>
-        <h2>Praise vs complaints</h2>
-        <p>Positive and negative feedback per movie.</p>
+        <h2>Praise vs critiques</h2>
+        <p>Positive and negative reviews per perfume.</p>
       </div>
     </div>
     <div class="chart-holder">
-      <canvas id="polarityBar" aria-label="Positive and negative feedback counts by movie" role="img"></canvas>
-      <p class="chart-empty" data-chart-empty="polarityBar" hidden>No analysed feedback yet.</p>
+      <canvas id="polarityBar" aria-label="Positive and negative review counts by perfume" role="img"></canvas>
+      <p class="chart-empty" data-chart-empty="polarityBar" hidden>No analysed reviews yet.</p>
     </div>
   </section>
 </div>
@@ -128,30 +128,30 @@
         <h2>Latest submissions</h2>
         <p>The eight most recent responses, newest first.</p>
       </div>
-      <span class="meta-chip">{{ total_feedback }} total</span>
+      <span class="meta-chip">{{ total_reviews }} total</span>
     </div>
 
-    {% if recent_feedback %}
+    {% if recent_reviews %}
       <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
               <th scope="col">Tracking ID</th>
-              <th scope="col">Movie</th>
-              <th scope="col">Audience</th>
+              <th scope="col">Perfume</th>
+              <th scope="col">Reviewer</th>
               <th scope="col">Rating</th>
               <th scope="col">Sentiment</th>
               <th scope="col">Received</th>
             </tr>
           </thead>
           <tbody>
-            {% for item in recent_feedback %}
+            {% for item in recent_reviews %}
               <tr>
                 <td><span class="code-chip">{{ item.tracking_id }}</span></td>
-                <td class="cell-title">{{ item.movie.title }}</td>
-                <td class="cell-muted">{{ item.username }}</td>
-                <td><span class="star-glyph" aria-hidden="true">★</span> {{ item.rating }}/5</td>
-                <td>{% include "partials/sentiment_badge.html" with analysis=item.analysis %}</td>
+                <td class="cell-title">{{ item.perfume.perfume_name }}</td>
+                <td class="cell-muted">{{ item.reviewer_name }}</td>
+                <td><span class="star-glyph" aria-hidden="true">★</span> {{ item.overall_rating }}/5</td>
+                <td>{% include "partials/sentiment_badge.html" with analysis=item.sentiment %}</td>
                 <td class="cell-muted">{{ item.created_at|date:"M j, H:i" }}</td>
               </tr>
             {% endfor %}
@@ -160,8 +160,8 @@
       </div>
     {% else %}
       <div class="empty-inline">
-        <p>No feedback has been submitted yet.</p>
-        <a class="btn btn-ghost btn-sm" href="{% url 'movies:list' %}">Open the public catalogue</a>
+        <p>No reviews have been submitted yet.</p>
+        <a class="btn btn-ghost btn-sm" href="{% url 'perfumes:list' %}">Open the public catalogue</a>
       </div>
     {% endif %}
   </section>
@@ -170,20 +170,20 @@
     <div class="staff-panel-head">
       <div>
         <h2>Top rated</h2>
-        <p>By average audience rating.</p>
+        <p>By average reviewer rating.</p>
       </div>
     </div>
 
-    {% if top_movies %}
+    {% if top_perfumes %}
       <ol class="ranked-list">
-        {% for movie in top_movies %}
+        {% for perfume in top_perfumes %}
           <li>
             <span class="rank">{{ forloop.counter|stringformat:"02d" }}</span>
             <div class="ranked-main">
-              <a href="{{ movie.get_absolute_url }}">{{ movie.title }}</a>
-              <span>{{ movie.feedback_count }} review{{ movie.feedback_count|pluralize }}</span>
+              <a href="{{ perfume.get_absolute_url }}">{{ perfume.perfume_name }}</a>
+              <span>{{ perfume.review_count }} review{{ perfume.review_count|pluralize }}</span>
             </div>
-            <span class="ranked-score">{{ movie.average_rating|floatformat:1 }}</span>
+            <span class="ranked-score">{{ perfume.average_rating|floatformat:1 }}</span>
           </li>
         {% endfor %}
       </ol>
@@ -194,44 +194,38 @@
     {% endif %}
   </aside>
 
-  <!-- Movie Ranking Section -->
+  <!-- Perfume Ranking Section -->
   <section class="staff-panel">
     <div class="staff-panel-head">
       <div>
-        <h2>Movie Ranking</h2>
-        <p>Audience appreciation score based on ratings, sentiment, and feedback volume.</p>
+        <h2>Perfume ranking</h2>
+        <p>Audience appreciation score based on ratings, sentiment, longevity, projection and value for money.</p>
       </div>
     </div>
 
-    {% if ranked_movies %}
+    {% if ranked_perfumes %}
       <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
               <th scope="col">Rank</th>
-              <th scope="col">Movie</th>
-              <th scope="col">Poster</th>
+              <th scope="col">Perfume</th>
+              <th scope="col">Brand</th>
               <th scope="col">Score</th>
-              <th scope="col">Avg Rating</th>
-              <th scope="col">Feedback</th>
+              <th scope="col">Avg rating</th>
+              <th scope="col">Reviews</th>
               <th scope="col">Positive %</th>
               <th scope="col">Sentiment (Pos/Neu/Neg)</th>
             </tr>
           </thead>
           <tbody>
-            {% for item in ranked_movies %}
+            {% for item in ranked_perfumes %}
               <tr>
                 <td><strong>{{ item.rank }}</strong></td>
                 <td class="cell-title">
-                  <a href="{{ item.movie.get_absolute_url }}">{{ item.movie.title }}</a>
+                  <a href="{{ item.perfume.get_absolute_url }}">{{ item.perfume.perfume_name }}</a>
                 </td>
-                <td class="cell-poster">
-                  {% if item.movie.poster %}
-                    <img src="{{ item.movie.poster.url }}" alt="Poster" width="30" height="45">
-                  {% else %}
-                    <span class="poster-placeholder">—</span>
-                  {% endif %}
-                </td>
+                <td class="cell-muted">{{ item.perfume.brand.name }}</td>
                 <td>
                   {% if item.final_score is not None %}
                     <strong>{{ item.final_score }}</strong>
@@ -240,22 +234,22 @@
                   {% endif %}
                 </td>
                 <td>
-                  {% if item.average_rating is not None %}
-                    {{ item.average_rating }} / 5
+                  {% if item.average_overall_rating is not None %}
+                    {{ item.average_overall_rating }} / 5
                   {% else %}
                     <span class="muted">—</span>
                   {% endif %}
                 </td>
-                <td>{{ item.total_feedback }}</td>
+                <td>{{ item.total_reviews }}</td>
                 <td>
-                  {% if item.positive_pct is not None %}
-                    {{ item.positive_pct }}%
+                  {% if item.sentiment_score is not None %}
+                    {{ item.sentiment_score }}%
                   {% else %}
                     <span class="muted">—</span>
                   {% endif %}
                 </td>
                 <td class="cell-muted">
-                  {{ item.positive_feedback }} / {{ item.neutral_feedback }} / {{ item.negative_feedback }}
+                  {{ item.positive_reviews }} / {{ item.neutral_reviews }} / {{ item.negative_reviews }}
                 </td>
               </tr>
             {% endfor %}
@@ -264,37 +258,37 @@
       </div>
     {% else %}
       <div class="empty-inline">
-        <p>No movies qualify for reliable ranking yet.</p>
+        <p>No perfumes qualify for reliable ranking yet.</p>
       </div>
     {% endif %}
 
-    {% if insufficient_movies %}
+    {% if insufficient_perfumes %}
       <div class="staff-panel-head" style="margin-top: 2rem;">
         <div>
-          <h3>Insufficient Data</h3>
-          <p>Movies with fewer than 5 feedback submissions or no analyzed sentiment.</p>
+          <h3>Insufficient data</h3>
+          <p>Perfumes with fewer than 5 reviews or no analysed sentiment.</p>
         </div>
       </div>
       <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
-              <th scope="col">Movie</th>
-              <th scope="col">Feedback</th>
-              <th scope="col">Avg Rating</th>
+              <th scope="col">Perfume</th>
+              <th scope="col">Reviews</th>
+              <th scope="col">Avg rating</th>
               <th scope="col">Reason</th>
             </tr>
           </thead>
           <tbody>
-            {% for item in insufficient_movies %}
+            {% for item in insufficient_perfumes %}
               <tr>
                 <td class="cell-title">
-                  <a href="{{ item.movie.get_absolute_url }}">{{ item.movie.title }}</a>
+                  <a href="{{ item.perfume.get_absolute_url }}">{{ item.perfume.perfume_name }}</a>
                 </td>
-                <td>{{ item.total_feedback }}</td>
+                <td>{{ item.total_reviews }}</td>
                 <td>
-                  {% if item.average_rating is not None %}
-                    {{ item.average_rating }} / 5
+                  {% if item.average_overall_rating is not None %}
+                    {{ item.average_overall_rating }} / 5
                   {% else %}
                     <span class="muted">—</span>
                   {% endif %}

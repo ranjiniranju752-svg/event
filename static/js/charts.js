@@ -1,4 +1,4 @@
-/* ReelScope — staff dashboard charts (Chart.js).
+/* ScentScope — staff dashboard charts (Chart.js).
    All values come from database-backed JSON endpoints. Nothing is hardcoded. */
 (() => {
   "use strict";
@@ -7,13 +7,13 @@
   if (!root) return;
 
   const COLORS = {
-    positive: "#4ade80",
-    neutral: "#fbbf24",
-    negative: "#f87171",
-    gold: "#e6b566",
-    goldSoft: "rgba(230, 181, 102, 0.18)",
-    grid: "rgba(255, 255, 255, 0.05)",
-    text: "#98a1b5",
+    positive: "#6a8a5c",
+    neutral: "#b99a4c",
+    negative: "#a65a5a",
+    gold: "#c9a227",
+    goldSoft: "rgba(201, 162, 39, 0.12)",
+    grid: "rgba(28, 25, 22, 0.06)",
+    text: "#726a5f",
   };
 
   const charts = {};
@@ -40,7 +40,7 @@
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
     Chart.defaults.font.size = 11;
     Chart.defaults.borderColor = COLORS.grid;
-    Chart.defaults.plugins.tooltip.backgroundColor = "rgba(8, 13, 24, 0.95)";
+    Chart.defaults.plugins.tooltip.backgroundColor = "rgba(28, 25, 22, 0.92)";
     Chart.defaults.plugins.tooltip.borderColor = "rgba(255, 255, 255, 0.1)";
     Chart.defaults.plugins.tooltip.borderWidth = 1;
     Chart.defaults.plugins.tooltip.padding = 10;
@@ -72,7 +72,7 @@
         labels: data.labels.map(formatDay),
         datasets: [
           {
-            label: "All feedback",
+            label: "All reviews",
             data: data.total,
             borderColor: COLORS.gold,
             backgroundColor: COLORS.goldSoft,
@@ -143,7 +143,7 @@
           {
             data: [counts.positive, counts.neutral, counts.negative],
             backgroundColor: [COLORS.positive, COLORS.neutral, COLORS.negative],
-            borderColor: "#0a0f1c",
+            borderColor: "#faf7f2",
             borderWidth: 4,
             hoverOffset: 6,
           },
@@ -183,7 +183,7 @@
             label: "Average rating",
             data: data.ratings,
             backgroundColor: COLORS.gold,
-            hoverBackgroundColor: "#f6d79b",
+            hoverBackgroundColor: "#e0cd9b",
             borderRadius: 4,
             barThickness: 16,
           },

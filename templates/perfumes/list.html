@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Explore perfumes — ScentScope{% endblock %}
+{% block meta_description %}Browse the ScentScope catalogue, see ratings and share your own take on any fragrance.{% endblock %}
+{% block body_class %}page-perfumes{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="shell">
+    <p class="eyebrow">The catalogue</p>
+    <h1>Find your next <span class="accent-word">signature scent</span>.</h1>
+    <p class="page-lead">
+      Every fragrance here is waiting for a wearer's verdict. Open a perfume to
+      read what people felt, or add your own review in under a minute.
+    </p>
+  </div>
+</section>
+
+<section class="section section-tight">
+  <div class="shell">
+    <form class="filter-bar" method="get" role="search">
+      <div class="search-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <label class="sr-only" for="perfume-search">Search perfumes</label>
+        <input id="perfume-search" type="search" name="q" value="{{ query }}" placeholder="Search by name, brand or notes…">
+      </div>
+      <div class="filter-field">
+        <label class="sr-only" for="filter-family">Fragrance family</label>
+        <select id="filter-family" name="family" class="form-control">
+          <option value="">All families</option>
+          {% for family in families %}
+            <option value="{{ family.slug }}" {% if active_family == family.slug %}selected{% endif %}>{{ family.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label class="sr-only" for="filter-concentration">Concentration</label>
+        <select id="filter-concentration" name="concentration" class="form-control">
+          <option value="">All concentrations</option>
+          {% for value, label in concentrations %}
+            <option value="{{ value }}" {% if active_concentration == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label class="sr-only" for="filter-gender">For</label>
+        <select id="filter-gender" name="gender" class="form-control">
+          <option value="">All</option>
+          {% for value, label in genders %}
+            <option value="{{ value }}" {% if active_gender == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label class="sr-only" for="filter-price-max">Max price</label>
+        <input id="filter-price-max" type="number" name="price_max" value="{{ active_price_max }}" placeholder="Max price" class="form-control" min="0" step="0.01">
+      </div>
+      <button class="btn btn-gold" type="submit">Search</button>
+      {% if query or active_family or active_concentration or active_gender or active_price_max %}
+        <a class="btn btn-ghost" href="{% url 'perfumes:list' %}">Reset</a>
+      {% endif %}
+    </form>
+
+    <div class="sort-bar">
+      <span class="sort-label">Sort by:</span>
+      <a class="chip{% if active_sort == 'newest' %} is-active{% endif %}" href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if active_family %}family={{ active_family }}&{% endif %}{% if active_concentration %}concentration={{ active_concentration }}&{% endif %}{% if active_gender %}gender={{ active_gender }}&{% endif %}{% if active_price_max %}price_max={{ active_price_max }}&{% endif %}sort=newest">Newest</a>
+      <a class="chip{% if active_sort == 'rating' %} is-active{% endif %}" href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if active_family %}family={{ active_family }}&{% endif %}{% if active_concentration %}concentration={{ active_concentration }}&{% endif %}{% if active_gender %}gender={{ active_gender }}&{% endif %}{% if active_price_max %}price_max={{ active_price_max }}&{% endif %}sort=rating">Top rated</a>
+      <a class="chip{% if active_sort == 'price-low' %} is-active{% endif %}" href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if active_family %}family={{ active_family }}&{% endif %}{% if active_concentration %}concentration={{ active_concentration }}&{% endif %}{% if active_gender %}gender={{ active_gender }}&{% endif %}{% if active_price_max %}price_max={{ active_price_max }}&{% endif %}sort=price-low">Price: low to high</a>
+      <a class="chip{% if active_sort == 'price-high' %} is-active{% endif %}" href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if active_family %}family={{ active_family }}&{% endif %}{% if active_concentration %}concentration={{ active_concentration }}&{% endif %}{% if active_gender %}gender={{ active_gender }}&{% endif %}{% if active_price_max %}price_max={{ active_price_max }}&{% endif %}sort=price-high">Price: high to low</a>
+    </div>
+
+    <div class="results-meta">
+      <p>
+        {{ page_obj.paginator.count }} perfume{{ page_obj.paginator.count|pluralize }}
+        {% if query %} matching &ldquo;{{ query }}&rdquo;{% endif %}
+      </p>
+    </div>
+
+    {% if perfumes %}
+      <div class="perfume-grid">
+        {% for perfume in perfumes %}
+          {% include "partials/perfume_card.html" with perfume=perfume %}
+        {% endfor %}
+      </div>
+      {% include "partials/pagination.html" %}
+    {% else %}
+      <div class="empty-panel">
+        <span class="empty-icon" aria-hidden="true">✦</span>
+        <h2>No perfumes found</h2>
+        <p>Try a different name, brand or note.</p>
+        <a class="btn btn-ghost btn-sm" href="{% url 'perfumes:list' %}">Clear filters</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

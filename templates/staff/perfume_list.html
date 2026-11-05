@@ -1,0 +1,79 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Perfume management — ScentScope Staff{% endblock %}
+{% block staff_title %}Perfume management{% endblock %}
+
+{% block staff_content %}
+<div class="staff-page-head">
+  <div>
+    <p class="eyebrow">Catalogue</p>
+    <h1>Manage perfumes</h1>
+    <p class="staff-lead">Add, edit, publish, archive or remove fragrances from the catalogue.</p>
+  </div>
+  <div class="staff-page-meta">
+    <a class="btn btn-gold" href="{% url 'perfumes_staff:perfume_add' %}">Add perfume</a>
+  </div>
+</div>
+
+{% if perfumes %}
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th scope="col">Image</th>
+          <th scope="col">Perfume</th>
+          <th scope="col">Brand</th>
+          <th scope="col">Family</th>
+          <th scope="col">Concentration</th>
+          <th scope="col">Price</th>
+          <th scope="col">Status</th>
+          <th scope="col">Reviews</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for perfume in perfumes %}
+          <tr>
+            <td class="cell-image">
+              {% if perfume.image %}
+                <img src="{{ perfume.image.url }}" alt="Image for {{ perfume.perfume_name }}" width="40" height="60">
+              {% else %}
+                <span class="image-placeholder">—</span>
+              {% endif %}
+            </td>
+            <td class="cell-title">
+              <a href="{{ perfume.get_absolute_url }}">{{ perfume.perfume_name }}</a>
+            </td>
+            <td class="cell-muted">{{ perfume.brand.name }}</td>
+            <td class="cell-muted">{{ perfume.get_fragrance_family_display }}</td>
+            <td class="cell-muted">{{ perfume.get_concentration_display }}</td>
+            <td class="cell-muted">{{ perfume.price }}</td>
+            <td>
+              {% if perfume.is_published %}
+                <span class="badge is-positive">Published</span>
+              {% else %}
+                <span class="badge is-negative">Unpublished</span>
+              {% endif %}
+            </td>
+            <td class="cell-muted">{{ perfume.reviews.count }}</td>
+            <td class="cell-actions">
+              {% if perfume.is_published %}
+                <a class="btn btn-ghost btn-sm" href="{% url 'perfumes_staff:perfume_toggle_publish' perfume.pk %}">Unpublish</a>
+              {% else %}
+                <a class="btn btn-ghost btn-sm" href="{% url 'perfumes_staff:perfume_toggle_publish' perfume.pk %}">Publish</a>
+              {% endif %}
+              <a class="btn btn-ghost btn-sm" href="{% url 'perfumes_staff:perfume_edit' perfume.pk %}">Edit</a>
+              <a class="btn btn-ghost btn-sm is-danger" href="{% url 'perfumes_staff:perfume_delete' perfume.pk %}">Delete</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-inline">
+    <p>No perfumes in the catalogue yet.</p>
+    <a class="btn btn-gold" href="{% url 'perfumes_staff:perfume_add' %}">Add your first perfume</a>
+  </div>
+{% endif %}
+{% endblock %}

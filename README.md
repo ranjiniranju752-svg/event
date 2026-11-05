@@ -1,95 +1,58 @@
-# ReelScope — Smart Movie Feedback Collection and Analysis System
+# ScentScope — Smart Perfume Review, Feedback Collection and Analysis System
 
-ReelScope is a Django-based web application that collects movie feedback from
+ScentScope is a Django-based web application that collects perfume reviews from
 visitors, performs automatic sentiment analysis on the written reviews, and
-provides staff with a comprehensive analytics dashboard to understand audience
+provides staff with a comprehensive analytics dashboard to understand fragrance
 opinion.
+
+Visitors browse a catalogue of perfumes, submit detailed ratings (overall,
+longevity, projection, sillage, fragrance quality, value for money) and written
+reviews without creating an account, and receive a unique Tracking ID to revisit
+their submission later. Staff members log in to a private dashboard to manage
+the perfume catalogue, view all submitted reviews, see real-time sentiment
+analysis results, and explore perfume rankings based on audience appreciation.
 
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
 2. [Main Features](#2-main-features)
 3. [Technology Stack](#3-technology-stack)
-4. [Project Folder Structure](#4-project-folder-structure)
-5. [System Requirements](#5-system-requirements)
-6. [Installation and Setup Guide — Windows](#6-installation-and-setup-guide--windows)
-7. [Staff Account Creation Guide](#7-staff-account-creation-guide)
-8. [Important Website URLs](#8-important-website-urls)
-9. [How to Use ReelScope](#9-how-to-use-reelscope)
-10. [Database Information](#10-database-information)
-11. [Testing](#11-testing)
-12. [Troubleshooting](#12-troubleshooting)
-13. [Project Limitations and Future Improvements](#13-project-limitations-and-future-improvements)
+4. [System Architecture](#4-system-architecture)
+5. [Database Schema](#5-database-schema)
+6. [Application Workflow](#6-application-workflow)
+7. [Installation Instructions](#7-installation-instructions)
+8. [Migration Instructions](#8-migration-instructions)
+9. [How to Create a Staff Account](#9-how-to-create-a-staff-account)
+10. [How to Run the Application](#10-how-to-run-the-application)
+11. [How to Run Tests](#11-how-to-run-tests)
+12. [Screenshots](#12-screenshots)
+13. [Future Enhancements](#13-future-enhancements)
 
 ---
 
 ## 1. Project Overview
 
-### What ReelScope Is
+### What ScentScope Is
 
-ReelScope is a Smart Movie Feedback Collection and Analysis System. It is a
-server-rendered Django web application that lets visitors browse a catalogue of
-movies, submit star ratings and written feedback without creating an account,
-and receive a unique Tracking ID to revisit their submission later.
+ScentScope is a Smart Perfume Review, Feedback Collection and Analysis System.
+It is a server-rendered Django web application that lets visitors browse a
+catalogue of perfumes, submit star ratings and written reviews without creating
+an account, and receive a unique Tracking ID (e.g. `SS-2026-A8K92`) to revisit
+their submission later.
 
-Staff members can log in to a private dashboard to manage the movie catalogue
-(add, edit, publish, unpublish, delete movies), view all submitted feedback,
-see real-time sentiment analysis results, and explore movie rankings based on
-audience appreciation.
+Staff members can log in to a private dashboard to manage the perfume catalogue
+(add, edit, publish, unpublish, archive or delete perfumes), view all submitted
+reviews, see real-time sentiment analysis results, and explore perfume rankings
+based on audience appreciation.
 
 ### Why It Was Developed
 
-ReelScope was developed to solve a common problem: collecting audience feedback
-on movies and turning raw ratings and written reviews into clear, actionable
-insights. Star ratings alone do not tell the whole story — a 5-star rating
-with a comment like "the story was boring" reveals a mismatch between the
-rating and the written opinion. ReelScope pairs every star rating with
-automatic sentiment analysis to surface these insights.
-
-### How Visitors Submit Movie Feedback
-
-1. A visitor browses the public movie catalogue.
-2. They select a movie and open its detail page.
-3. They click "Rate this movie" to open the feedback form.
-4. They enter their username, email address, a star rating (1–5), and a written
-   feedback message.
-5. They submit the form. No account or login is required.
-6. The feedback is saved to the database, sentiment analysis runs
-   automatically, and the visitor receives a unique Tracking ID (e.g.
-   `RS-2026-A8K92`) on a confirmation page.
-
-### How Sentiment Analysis Works
-
-Every submitted feedback message is analysed using VADER (Valence Aware
-Dictionary and sEntiment Reasoner), a lexicon-based sentiment analysis tool
-tuned for English text. The analysis:
-
-- Classifies the written feedback as Positive, Neutral, or Negative based on
-  the VADER compound score (>= 0.05 = positive, <= -0.05 = negative,
-  otherwise neutral).
-- Classifies the star rating separately (4–5 stars = positive, 3 stars =
-  neutral, 1–2 stars = negative).
-- Detects mismatches when the written sentiment disagrees with the star rating
-  (e.g. 5 stars but a negative written comment).
-- Stores the result in a `SentimentAnalysis` record linked to the feedback.
-
-If analysis fails, the feedback is still saved and the analysis record is
-marked as "failed". Staff can retry failed analyses later.
-
-### How Staff Use the Analytics Dashboard
-
-Staff log in through the Login page and access the staff dashboard at
-`/staff/`. The dashboard shows:
-
-- Key performance indicators: total movies, total feedback, average rating,
-  sentiment breakdown.
-- Interactive charts: feedback trends, sentiment distribution, movie ratings,
-  praise vs complaints.
-- A movie ranking table showing audience appreciation scores.
-- A list of recent feedback submissions.
-
-Staff can also manage movies through `/staff/movies/` (add, edit, publish,
-unpublish, delete).
+ScentScope was developed to solve a common problem: collecting fragrance
+feedback and turning raw ratings and written reviews into clear, actionable
+insights. Star ratings alone do not tell the whole story — a 5-star rating with
+a comment like "the scent is synthetic and fades quickly" reveals a mismatch
+between the rating and the written opinion. ScentScope pairs every star rating
+with automatic sentiment analysis to surface these insights.
 
 ---
 
@@ -99,78 +62,94 @@ unpublish, delete).
 
 | Feature | Description |
 |---------|-------------|
-| Browse published movies | Visitors can see all published movies on the home page and movie listing page, with posters, titles, genres, languages, release dates, and average ratings. |
-| View movie details | Each movie has a dedicated page showing full metadata (director, cast, description), average rating, feedback count, sentiment breakdown, and recent audience feedback. |
-| Submit feedback without registration | No account or login is required. Visitors provide username, email, star rating (1–5), and a written message. |
-| Receive a unique Tracking ID | Every submission gets a unique ID (format: `RS-YYYY-XXXXX`) shown on the confirmation page. |
-| Track submitted feedback | Visitors can enter their Tracking ID at `/track/` to revisit their submission and see its sentiment result. |
-| Submission confirmation page | After submitting, visitors see a confirmation page with their Tracking ID, movie title, rating, and a copy button. |
+| Browse published perfumes | Visitors see all published perfumes with images, names, brands, fragrance families, concentrations, prices, and average ratings. |
+| Search perfumes | Search by perfume name, brand, or fragrance notes. |
+| Filter by fragrance family | Narrow results by olfactory family (Floral, Woody, Oriental, etc.). |
+| Filter by concentration | Filter by EDT, EDP, EDC, or Parfum. |
+| Filter by price range | Set a maximum price. |
+| Filter by target audience | Filter by For Men, For Women, or Unisex. |
+| Sort results | Newest, top rated, or price (low/high). |
+| View perfume details | Dedicated page with notes pyramid (top/middle/base), performance details, rating breakdown, sentiment summary, and customer reviews. |
+| Submit reviews without registration | No account or login required. Visitors rate overall, longevity, projection, sillage, fragrance quality and value for money, plus a written review. |
+| Receive a unique Tracking ID | Every submission gets a unique ID (format: `SS-YYYY-XXXXX`) shown on the confirmation page. |
+| Track submitted feedback | Visitors enter their Tracking ID at `/track/` to revisit their submission and see its sentiment result. |
+| Submission confirmation page | After submitting, visitors see a confirmation page with their Tracking ID, perfume title, rating, sentiment, and a copy button. |
 
 ### Staff Features
 
 | Feature | Description |
 |---------|-------------|
 | Secure staff login | Staff log in through `/accounts/login/`. Only users with staff status can access staff pages. |
-| Add movies | Staff can add new movies with title, poster image, description, genre, release date, director, cast, and language. |
-| Edit movies | Staff can edit any movie's details and replace its poster. |
-| Delete movies | Staff can delete movies with a confirmation screen showing how many feedback submissions will also be removed. |
-| Publish/unpublish movies | New movies are unpublished by default. Staff can toggle publication status so only published movies appear publicly. |
-| View submitted feedback | Staff can see all feedback submissions with tracking ID, movie, username, rating, sentiment, and submission date. |
-| View movie rankings | Staff see a ranked table of movies based on audience appreciation (ratings, sentiment, and feedback volume). |
-| View rating and sentiment analytics | Charts and KPIs show rating distribution, sentiment split, feedback trends, and praise vs complaints. |
+| Add perfumes | Staff can add perfumes with name, brand, image, description, family, notes, concentration, gender, launch year, price, volume, longevity/sillage, availability, and publish status. |
+| Edit perfumes | Staff can edit any perfume's details and replace its image. |
+| Delete perfumes | Staff can delete perfumes with a confirmation screen showing how many reviews will also be removed. |
+| Publish/unpublish perfumes | New perfumes are unpublished by default. Staff toggle publication so only published perfumes appear publicly. |
+| View submitted reviews | Staff see all reviews with tracking ID, perfume, reviewer, ratings, sentiment, and submission date. |
+| View perfume rankings | Staff see a ranked table of perfumes based on audience appreciation (ratings, sentiment, longevity, projection, value). |
+| View rating and sentiment analytics | Charts and KPIs show rating distribution, sentiment split, review trends, and praise vs critiques. |
+| Review rating-sentiment mismatches | Staff see mismatches where star rating and written sentiment disagree. |
+| Retry failed sentiment analyses | Management command `retry_failed_sentiment` retries failed analyses. |
 | Manage staff accounts | Staff accounts are created and managed through Django Admin at `/django-admin/`. |
 
-> **Important:** Public staff registration is disabled. Staff accounts can only
-> be created by an administrator through Django's superuser system or Django
-> Admin. There is no public "Create account" or "Register" option on the
-> website.
+> **Important:** Public registration is disabled. Staff accounts can only be
+> created by an administrator through Django's superuser system or Django Admin.
+> There is no public "Create account" or "Register" option on the website.
 
 ### Sentiment Analysis
 
-- **Classification:** Written feedback is classified as Positive, Neutral, or Negative using VADER compound score thresholds (>= 0.05 positive, <= -0.05 negative, otherwise neutral).
-- **Rating-based sentiment:** Star ratings are mapped separately: 4–5 stars = positive, 3 stars = neutral, 1–2 stars = negative.
+- **Classification:** Written reviews are classified as Positive, Neutral, or Negative using VADER compound score thresholds (>= 0.05 positive, <= -0.05 negative, otherwise neutral).
+- **Rating-based sentiment:** Overall star ratings are mapped separately: 4–5 stars = positive, 3 stars = neutral, 1–2 stars = negative.
 - **Mismatch detection:** When text sentiment and rating sentiment disagree (e.g. 5 stars but negative written feedback), `is_mismatch` is flagged. Staff can see mismatch counts on the dashboard.
-- **Failure handling:** If sentiment analysis fails, the feedback row is never lost. The analysis record is marked "failed" with an error message, and staff can retry it later using the `retry_failed_sentiment` management command.
-- **Limitations:** VADER is primarily designed for English text. Malayalam and mixed-language feedback may not be classified accurately. Sarcasm, irony, and indirect opinions are not reliably detected. Results are best-effort estimates, not ground truth.
+- **Perfume-specific keywords:** Supplementary keyword detection (e.g. "long-lasting", "elegant", "synthetic", "overpowering") is stored as positive/negative keyword lists for display. VADER remains the primary classifier; keywords are supplementary only.
+- **Failure handling:** If sentiment analysis fails, the review row is never lost. The analysis record is marked "failed" with an error message, and staff can retry it later using the `retry_failed_sentiment` management command.
+- **Limitations:** VADER is primarily designed for English text. Non-English or mixed-language reviews may not be classified accurately. Sarcasm, irony, and indirect opinions are not reliably detected. Automated sentiment analysis may not understand every nuance of perfume language. Results are best-effort estimates, not ground truth.
 
-### Movie Ranking
+### Perfume Ranking
 
-The ranking system uses a transparent weighted formula. All values are
-computed from live SQLite database records — nothing is hardcoded or stored
-as a stale score.
+The ranking system uses a transparent weighted formula. All values are computed
+from live SQLite database records — nothing is hardcoded or stored as a stale
+score.
 
 **Formula:**
 
 ```
-Final Score = (Rating Score × 0.50)
-            + (Positive Sentiment Percentage × 0.30)
-            + (Feedback Confidence × 0.20)
+Final Score =
+    (Overall Rating Score × 0.35) +
+    (Positive Sentiment Score × 0.25) +
+    (Feedback Confidence × 0.15) +
+    (Longevity Score × 0.10) +
+    (Projection Score × 0.10) +
+    (Value Score × 0.05)
 ```
 
-**Components:**
+**Components (all normalized to 0–100):**
 
 | Component | Formula | Range |
 |-----------|---------|-------|
-| Rating Score | (Average Rating / 5) × 100 | 0–100 |
-| Positive Sentiment % | (Positive Analyzed Feedback / Total Analyzed Feedback) × 100 | 0–100 |
-| Feedback Confidence | min(Feedback Count / 20, 1) × 100 | 0–100 |
+| Overall Rating Score | (Average overall rating / 5) × 100 | 0–100 |
+| Positive Sentiment % | (Positive analysed reviews / Total analysed reviews) × 100 | 0–100 |
+| Feedback Confidence | min(Review count / 20, 1) × 100 | 0–100 |
+| Longevity Score | (Average longevity rating / 5) × 100 | 0–100 |
+| Projection Score | (Average projection rating / 5) × 100 | 0–100 |
+| Value Score | (Average value-for-money rating / 5) × 100 | 0–100 |
 
 **Thresholds:**
 
-- `MIN_FEEDBACK_FOR_RANKING = 5`: A movie must have at least 5 feedback
-  submissions to appear in the reliable ranking. Movies with fewer than 5
-  submissions show an "Insufficient data" label.
-- `CONFIDENCE_DENOMINATOR = 20`: Feedback confidence caps at 100% when a
-  movie has 20 or more submissions.
+- `MIN_REVIEWS_FOR_RANKING = 5`: A perfume must have at least 5 reviews to appear in the reliable ranking. Perfumes with fewer than 5 reviews show an "Insufficient data" label.
+- `CONFIDENCE_DENOMINATOR = 20`: Feedback confidence caps at 100% when a perfume has 20 or more reviews.
 
-**Example calculation** for a movie with 8 feedback submissions, average
-rating 4.625, and 8 out of 8 successfully analysed as positive:
+**Example calculation** for a perfume with 8 reviews, average rating 4.625,
+average longevity 4.5, average projection 4.2, average value 4.0, and 6 out of
+8 analysed as positive:
 
-- Rating Score = (4.625 / 5) × 100 = 92.5
-- Positive Sentiment % = (8 / 8) × 100 = 100.0
+- Overall Rating Score = (4.625 / 5) × 100 = 92.5
+- Positive Sentiment % = (6 / 8) × 100 = 75.0
 - Feedback Confidence = min(8 / 20, 1) × 100 = 40.0
-- Final Score = (92.5 × 0.50) + (100.0 × 0.30) + (40.0 × 0.20)
-  = 46.25 + 30.0 + 8.0 = **84.25**
+- Longevity Score = (4.5 / 5) × 100 = 90.0
+- Projection Score = (4.2 / 5) × 100 = 84.0
+- Value Score = (4.0 / 5) × 100 = 80.0
+- Final Score = (92.5 × 0.35) + (75.0 × 0.25) + (40.0 × 0.15) + (90.0 × 0.10) + (84.0 × 0.10) + (80.0 × 0.05)
+  = 32.375 + 18.75 + 6.0 + 9.0 + 8.4 + 4.0 = **78.525**
 
 ---
 
@@ -179,162 +158,185 @@ rating 4.625, and 8 out of 8 successfully analysed as positive:
 | Technology | Purpose |
 |------------|---------|
 | HTML5 | Semantic page structure for all public and staff pages. |
-| CSS3 | Styling with a dark cinematic theme, responsive layouts, and modern typography (Inter + Bebas Neue). |
+| CSS3 | Styling with a premium ivory/cream, charcoal and gold aesthetic, responsive layouts, and modern typography (Playfair Display + Inter). |
 | JavaScript (Vanilla) | Interactive UI behaviour: mobile navigation, staff sidebar, star rating widget, character counter, copy-to-clipboard, and Chart.js integration. |
 | Python 3 | Backend programming language. |
 | Django 6.1.2 | Web framework handling routing, templates, forms, database ORM, authentication, and admin. |
 | SQLite | File-based relational database (`db.sqlite3`). No separate database server required. |
 | VADER (vaderSentiment) | Lexicon-based sentiment analysis for English text, producing compound scores in [-1.0, 1.0]. |
 | Chart.js | Interactive charts for the staff dashboard (line, doughnut, bar charts). |
+| Pillow | Image handling for uploaded perfume images. |
 
 No Node.js, MongoDB, React, or external AI APIs are used or required.
 
 ---
 
-## 4. Project Folder Structure
+## 4. System Architecture
 
-```
-ReelScope/
-├── manage.py                 # Django command-line utility
-├── requirements.txt          # Python dependencies
-├── .env                      # Local environment variables (not committed)
-├── .env.example              # Documented environment variable template
-├── .gitignore                # Git ignore rules
-├── db.sqlite3                # SQLite database file
-├── _verify_phase3.py         # Temporary verification script
-│
-├── accounts/                 # Staff authentication app
-│   ├── models.py             # EmailVerification model
-│   ├── forms.py              # RegisterForm (legacy, no longer used publicly)
-│   ├── views.py              # Login, logout, register-redirect views
-│   ├── urls.py               # /accounts/login/, /accounts/logout/, /accounts/register/
-│   ├── admin.py              # EmailVerification admin registration
-│   ├── migrations/
-│   └── tests.py
-│
-├── analytics/                # Staff analytics dashboard app
-│   ├── models.py             # (empty placeholder)
-│   ├── views.py              # Dashboard, chart JSON endpoints (staff-only)
-│   ├── urls.py               # /staff/, /staff/data/summary/, etc.
-│   ├── admin.py
-│   ├── services/
-│   │   ├── __init__.py       # overall_stats, sentiment_breakdown, dashboard_context, chart functions
-│   │   └── ranking.py        # Movie ranking service (weighted formula)
-│   ├── migrations/
-│   └── tests.py
-│
-├── feedback/                 # Feedback collection and sentiment analysis app
-│   ├── models.py             # Feedback, SentimentAnalysis models
-│   ├── forms.py              # FeedbackForm (username, email, rating, message)
-│   ├── views.py              # Submit feedback, success page, tracking page
-│   ├── urls.py               # /feedback/success/<tracking_id>/
-│   ├── tracking.py           # Tracking ID generation (RS-YYYY-XXXXX)
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── sentiment.py      # VADER sentiment analysis service + retry command
-│   ├── management/
-│   │   └── commands/
-│   │       └── retry_failed_sentiment.py
-│   ├── migrations/
-│   └── tests.py
-│
-├── movies/                   # Movie catalogue app
-│   ├── models.py             # Movie model (title, poster, genre, release_date, etc.)
-│   ├── forms.py              # MovieForm (staff add/edit)
-│   ├── views.py              # Public home/list/detail + staff movie CRUD
-│   ├── urls.py               # Public movie URLs
-│   ├── staff_urls.py         # Staff movie management URLs (/staff/movies/)
-│   ├── validators.py         # Poster size and release date validators
-│   ├── admin.py              # Movie admin registration
-│   ├── migrations/
-│   └── tests.py
-│
-├── reelscope/                # Django project configuration
-│   ├── settings.py           # Django settings (loads .env, SQLite, email, etc.)
-│   ├── urls.py               # Root URL configuration
-│   ├── wsgi.py
-│   └── asgi.py
-│
-├── templates/                # HTML templates (shared and app-specific)
-│   ├── base.html             # Base template with header, footer, messages
-│   ├── home.html             # Public home page
-│   ├── partials/             # Reusable template fragments (movie card, pagination, sentiment badge)
-│   ├── movies/               # Public movie pages (list, detail)
-│   ├── feedback/             # Feedback pages (submit, success, track)
-│   ├── accounts/             # Auth pages (login, verify_result)
-│   └── staff/                # Staff pages (base_staff, dashboard, movie CRUD)
-│
-├── static/                   # Static assets (CSS, JS, images)
-│   ├── css/style.css         # Main stylesheet (dark cinematic theme, responsive)
-│   ├── js/main.js            # Shared UI behaviour (nav, toasts, forms, stars)
-│   ├── js/charts.js          # Chart.js dashboard charts
-│   └── images/               # Logo and placeholder images
-│
-├── media/                    # User-uploaded files (movie posters)
-│   └── posters/
-│
-├── documentation/            # Design documents
-│   ├── 01-requirements.md
-│   └── 02-data-model-and-architecture.md
-│
-├── .dist/                    # Build artifacts
-├── .freebuff/                # Tooling artifacts
-├── .venv/                    # Virtual environment (local, not committed)
-└── .git/                     # Git version control
-```
+ScentScope follows a clean separation of concerns:
+
+- **`perfumes` app** — Perfume catalogue models (`Perfume`, `PerfumeBrand`, `FragranceFamily`, `PerfumeImage`), staff/public views, forms, services (annotated queries), validators, URLs, admin.
+- **`reviews` app** — Review and sentiment models (`Review`, `ReviewSentiment`), tracking ID generation (`SS-YYYY-XXXXX`), review form, VADER sentiment service, views (submit, success, track), admin, management command (`retry_failed_sentiment`).
+- **`analytics` app** — Staff dashboard views, Chart.js JSON endpoints, analytics services (sentiment breakdown, keyword leaderboard, rating breakdown, trend charts), and the perfume ranking service.
+- **`accounts` app** — Staff authentication (login/logout), public registration disabled, email verification model.
+- **`scentscope`** — Django project configuration (settings, URLs, WSGI/ASGI).
+
+Business logic (sentiment analysis, ranking, analytics queries) lives in dedicated service modules, not inside views. Templates use a shared `base.html` with reusable partials (perfume card, pagination, sentiment badge).
 
 ---
 
-## 5. System Requirements
+## 5. Database Schema
 
-### Required Software
+ScentScope uses SQLite (`db.sqlite3`). The main models:
 
-- **Python 3** — Compatible with Django 6.1.2 (Python 3.10+ recommended).
-- **pip** — Python package installer (comes with Python).
-- **A modern web browser** — Chrome, Firefox, Edge, or Safari for viewing the application.
-- **VS Code** (recommended) — Code editor with Python extension.
+### Perfume (`perfumes` app)
 
-### Not Required
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | BigAutoField | Primary key |
+| `perfume_name` | CharField (200) | Perfume name |
+| `slug` | SlugField (220, unique) | URL-friendly identifier (auto-generated) |
+| `brand` | FK → PerfumeBrand | Brand/perfume house (PROTECT) |
+| `description` | TextField | Perfume description |
+| `fragrance_family` | FK → FragranceFamily | Olfactory family (PROTECT) |
+| `top_notes` | CharField (200) | Comma-separated top notes |
+| `middle_notes` | CharField (200) | Comma-separated middle/heart notes |
+| `base_notes` | CharField (200) | Comma-separated base notes |
+| `concentration` | CharField (10) | EDT / EDP / EDC / Parfum |
+| `gender_category` | CharField (10) | Unisex / Men / Women |
+| `launch_year` | PositiveSmallIntegerField | Launch year (not future) |
+| `price` | DecimalField (10,2) | Retail price |
+| `volume_ml` | PositiveSmallIntegerField | Bottle size in ml |
+| `image` | ImageField | Main perfume image (uploaded to `media/perfumes/`) |
+| `longevity_category` | CharField (15) | Short / Moderate / Long / Very Long |
+| `sillage_category` | CharField (15) | Soft / Moderate / Strong / Intense |
+| `availability_status` | CharField (20) | In Stock / Limited / Discontinued |
+| `is_published` | BooleanField | Visible to public (default False) |
+| `created_at`, `updated_at` | DateTimeField | Automatic timestamps |
 
-- **Node.js** — Not used. No frontend build step.
-- **MongoDB** — Not used. SQLite is the only database.
-- **External AI APIs** — Not used. Sentiment analysis runs locally with VADER.
+### PerfumeBrand
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | CharField (100) | Brand name |
+| `slug` | SlugField (120, unique) | URL-friendly identifier |
+| `country` | CharField (100) | Country of origin |
+| `founded_year` | PositiveSmallIntegerField | Founding year |
+| `description`, `website` | TextField / URLField | Brand details |
+| `is_active` | BooleanField | Active brand |
+| `created_at`, `updated_at` | DateTimeField | Timestamps |
+
+### FragranceFamily
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | CharField (80) | Family name (e.g. Floral, Woody) |
+| `slug` | SlugField (100, unique) | URL-friendly identifier |
+| `description` | TextField | Family description |
+| `is_active` | BooleanField | Active family |
+| `created_at` | DateTimeField | Timestamp |
+
+### PerfumeImage
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `perfume` | FK → Perfume | Parent perfume (CASCADE) |
+| `image` | ImageField | Gallery image (uploaded to `media/perfumes/gallery/`) |
+| `alt_text` | CharField (200) | Alt text |
+| `is_primary` | BooleanField | Primary flag |
+| `uploaded_at` | DateTimeField | Timestamp |
+
+### Review (`reviews` app)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | BigAutoField | Primary key |
+| `perfume` | FK → Perfume | Perfume being reviewed (CASCADE) |
+| `reviewer_name` | CharField (100) | Visitor's name |
+| `reviewer_email` | EmailField | Visitor's email (private, never public) |
+| `tracking_id` | CharField (16, unique) | Unique ID `SS-YYYY-XXXXX` |
+| `overall_rating` | PositiveSmallIntegerField | 1–5 stars |
+| `longevity_rating` | PositiveSmallIntegerField | 1–5 stars |
+| `projection_rating` | PositiveSmallIntegerField | 1–5 stars |
+| `sillage_rating` | PositiveSmallIntegerField | 1–5 stars |
+| `fragrance_rating` | PositiveSmallIntegerField | 1–5 stars |
+| `value_for_money_rating` | PositiveSmallIntegerField | 1–5 stars |
+| `season_suitability` | CharField (20) | Spring / Summer / Autumn / Winter / All Seasons |
+| `occasion_suitability` | CharField (20) | Daily / Office / Evening / Special / Romantic |
+| `written_review` | TextField | Written review (10–2000 chars) |
+| `created_at`, `updated_at` | DateTimeField | Timestamps |
+| `is_approved` | BooleanField | Approved for public display (default True) |
+
+### ReviewSentiment (`reviews` app)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `review` | OneToOneField → Review | Linked review (CASCADE) |
+| `sentiment_label` | CharField (10) | Positive / Neutral / Negative |
+| `sentiment_score` | FloatField | VADER compound score (−1.0 to 1.0) |
+| `positive_keywords` | JSONField | Detected positive keywords |
+| `negative_keywords` | JSONField | Detected negative keywords |
+| `rating_sentiment` | CharField (10) | Sentiment from star rating |
+| `is_mismatch` | BooleanField | Text/rating sentiment disagree |
+| `analysis_status` | CharField (10) | Pending / Success / Failed |
+| `error_message` | TextField | Error if analysis failed |
+| `attempts` | PositiveSmallIntegerField | Analysis attempts |
+| `analyzed_at` | DateTimeField | Analysis completion time |
+
+### Relationships
+
+- **Perfume → Review:** One perfume can have many reviews (one-to-many, CASCADE).
+- **Review → ReviewSentiment:** One review has one sentiment analysis (one-to-one, CASCADE).
+- **PerfumeBrand → Perfume:** One brand can have many perfumes (PROTECT on delete).
+- **FragranceFamily → Perfume:** One family can have many perfumes (PROTECT on delete).
 
 ---
 
-## 6. Installation and Setup Guide — Windows
+## 6. Application Workflow
 
-Follow these steps to set up and run ReelScope on Windows.
+### Visitor Workflow
+
+1. **Open the home page** at `http://127.0.0.1:8000/`.
+2. **Browse perfumes** — published perfumes appear as cards with images, names, brands, families, and ratings. Use search and filters to narrow results.
+3. **Select a perfume** — click a card to view its details, notes pyramid, performance, rating breakdown and customer reviews.
+4. **Submit a review** — click "Write a review" and rate overall, longevity, projection, sillage, fragrance quality and value for money (1–5 each), pick season/occasion, and write a review. No account required.
+5. **Receive the tracking ID** — after submission, you see a confirmation page with your unique Tracking ID (e.g. `SS-2026-A8K92`). Copy it.
+6. **Track your submission** — go to `/track/`, enter your Tracking ID, and view your submission details and sentiment result.
+
+### Staff Workflow
+
+1. **Log in** at `http://127.0.0.1:8000/accounts/login/` using staff credentials.
+2. **Open the dashboard** at `http://127.0.0.1:8000/staff/` to see KPIs, charts and recent reviews.
+3. **Add perfumes** — go to `/staff/perfumes/add/` and fill in the perfume details. New perfumes are unpublished by default.
+4. **Publish perfumes** — toggle the "Publish publicly" checkbox or use the Publish button in the perfume list.
+5. **View reviews** — see all submissions in the dashboard's recent reviews panel.
+6. **Review sentiment analysis** — check sentiment breakdown, mismatch counts, and per-perfume sentiment data.
+7. **View perfume rankings** — see the ranked table of perfumes based on audience appreciation scores.
+8. **Manage accounts** — create staff users through Django Admin at `/django-admin/`.
+
+---
+
+## 7. Installation Instructions
+
+Follow these steps to set up and run ScentScope.
 
 ### Step 1: Open the Project Folder
 
-1. Open **File Explorer**.
-2. Navigate to `C:\Users\Admin\Desktop\monal\ReelScope` (or wherever you cloned/copied the project).
-3. Right-click inside the folder and select **Open with Code Editor** (or open VS Code and choose `File > Open Folder` and select this folder).
+Open the project folder in VS Code or your preferred editor.
 
-### Step 2: Open the Terminal
-
-In VS Code:
-1. Press `Ctrl + `` (backtick) or select **Terminal > New Terminal** from the menu.
-2. A PowerShell terminal opens at the project root.
-
-### Step 3: Create a Virtual Environment
+### Step 2: Create a Virtual Environment
 
 ```powershell
 python -m venv venv
 ```
 
-This creates a `venv/` folder containing an isolated Python environment.
-
-### Step 4: Activate the Virtual Environment
+### Step 3: Activate the Virtual Environment
 
 ```powershell
 .\venv\Scripts\Activate
 ```
 
-You will see `(venv)` at the start of your command prompt, indicating the virtual environment is active.
-
-### Step 5: Install Dependencies
+### Step 4: Install Dependencies
 
 ```powershell
 python -m pip install --upgrade pip
@@ -343,98 +345,76 @@ pip install -r requirements.txt
 
 This installs Django 6.1.2, Pillow, python-dotenv, and vaderSentiment.
 
-### Step 6: Configure Environment Variables
+### Step 5: Configure Environment Variables
 
-ReelScope loads secrets from a `.env` file in the project root. A template is provided at `.env.example`.
-
-1. Copy `.env.example` to `.env`:
+ScentScope loads secrets from a `.env` file in the project root. A template is provided at `.env.example`.
 
 ```powershell
 copy .env.example .env
 ```
 
-2. Open `.env` in a text editor and update the values as needed:
+Open `.env` and update values as needed. For development, the console email backend prints emails to the terminal.
 
-```
-DJANGO_SECRET_KEY=replace-with-a-long-random-string
-DJANGO_DEBUG=True
-DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1]
+**Important:** Never commit `.env`. Set `DJANGO_DEBUG=False` and real `DJANGO_SECRET_KEY` / `DJANGO_ALLOWED_HOSTS` before deploying to production.
 
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-EMAIL_HOST=smtp.example.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=your-address@example.com
-EMAIL_HOST_PASSWORD=your-app-password
-EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=ReelScope <no-reply@example.com>
-
-EMAIL_VERIFICATION_HOURS=24
-```
-
-**Important:** Never commit `.env` to version control. It is listed in `.gitignore`. Do not expose real SMTP passwords or secret keys in `.env.example` or in the README.
-
-For development, the console email backend prints emails to the terminal, so you can test the Tracking ID delivery flow without real SMTP credentials.
-
-### Step 7: Apply Database Migrations
+### Step 6: Apply Database Migrations
 
 ```powershell
 python manage.py migrate
 ```
 
-This creates or updates all SQLite database tables defined in the project's migrations. The database file `db.sqlite3` is created in the project root.
+This creates all SQLite tables defined in the project's migrations.
 
-### Step 8: Create the First Superuser
+### Step 7: Create the First Superuser
 
 ```powershell
 python manage.py createsuperuser
 ```
 
-You will be prompted for:
-
-- **Username:** Choose a staff username (e.g. `admin`).
-- **Email:** Enter an email address (can be left blank for local development).
-- **Password:** Enter a secure password. **The password will not be visible while typing** — this is normal terminal behaviour.
-
 This superuser has full staff access and can log in to the website and Django Admin.
 
-### Step 9: Run the Project
+### Step 8: Run the Project
 
 ```powershell
 python manage.py runserver
 ```
 
-You should see output like:
-
-```
-Watching for file changes with StatReloader
-Performing system checks...
-
-System check identified no issues (0 silenced).
-
-Django version 6.1.2, using settings 'reelscope.settings'
-Starting development server at http://127.0.0.1:8000/
-Quit the server with CTRL-BREAK.
-```
-
-### Step 10: Open the Website
-
-Open your browser and navigate to:
-
-```
-http://127.0.0.1:8000/
-```
-
-You will see the ReelScope home page with published movies (if any exist).
+Open `http://127.0.0.1:8000/`.
 
 ---
 
-## 7. Staff Account Creation Guide
+## 8. Migration Instructions
+
+The project ships with initial migrations for the `perfumes` and `reviews` apps:
+
+- `perfumes/migrations/0001_initial.py` — PerfumeBrand, FragranceFamily, Perfume, PerfumeImage.
+- `perfumes/migrations/0002_*.py` — Made `Perfume.image` and `PerfumeImage.image` blank=True.
+- `reviews/migrations/0001_initial.py` — Review, ReviewSentiment.
+
+To apply:
+
+```powershell
+python manage.py migrate
+```
+
+If you need to reset the database during development:
+
+```powershell
+# Stop the server, delete db.sqlite3, then re-apply:
+Remove-Item db.sqlite3
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+There is no meaningful conversion of movie data to perfume data; the old ReelScope movie/feedback models were removed and replaced by the new perfume/review models.
+
+---
+
+## 9. How to Create a Staff Account
 
 Public staff registration is **disabled**. Staff accounts must be created through Django's superuser/admin system.
 
 ### First Staff Account — Superuser
-
-Run the createsuperuser command:
 
 ```powershell
 python manage.py createsuperuser
@@ -449,154 +429,56 @@ Follow the prompts to set a username, email, and password. After creating the su
 
 ### Creating Additional Staff Accounts
 
-1. Start the server and log in to Django Admin:
-   `http://127.0.0.1:8000/django-admin/`
+1. Start the server and log in to Django Admin: `http://127.0.0.1:8000/django-admin/`
 2. Use your superuser credentials.
-3. In the Django Admin sidebar, click **Users** under the "Auth" section.
-4. Click **Add User** in the top-right corner.
-5. Enter the username and password for the new staff member.
-6. Click **Save**.
-7. Click on the newly created user's name to edit their details.
-8. Under "Permissions", check the **Staff status** (`is_staff`) checkbox.
-9. Assign any additional permissions as needed (e.g. "Can add movie", "Can change movie").
-10. Click **Save**.
+3. Click **Users** under the "Auth" section, then **Add User**.
+4. Enter username and password, click **Save**.
+5. Click the new user's name, check **Staff status** (`is_staff`), and click **Save**.
 
-The new staff member can now log in at `http://127.0.0.1:8000/accounts/login/` and access staff pages.
-
-> Public visitors cannot create staff accounts through the website. The registration page redirects to the login page with a message that public registration is disabled.
+The new staff member can now log in and access staff pages. Public visitors cannot create staff accounts through the website.
 
 ---
 
-## 8. Important Website URLs
+## 10. How to Run the Application
+
+With the virtual environment activated:
+
+```powershell
+python manage.py runserver
+```
+
+Then open `http://127.0.0.1:8000/`.
+
+Key URLs:
 
 | URL | Page | Access |
 |-----|------|--------|
 | `/` | Home page | Public |
-| `/movies/` | Movie listing (search, filter, paginate) | Public |
-| `/movies/<slug>/` | Movie detail page | Public (published movies only) |
-| `/movies/<slug>/feedback/` | Feedback submission form | Public |
-| `/feedback/success/<tracking_id>/` | Feedback confirmation page | Public (owner with tracking ID) |
-| `/track/` | Feedback tracking lookup | Public |
+| `/perfumes/` | Perfume listing (search, filter, paginate) | Public |
+| `/perfumes/<slug>/` | Perfume detail page | Public (published perfumes only) |
+| `/perfumes/<slug>/reviews/` | Review submission form | Public |
+| `/reviews/success/<tracking_id>/` | Review confirmation page | Public |
+| `/track/` | Review tracking lookup | Public |
 | `/accounts/login/` | Staff login | Public (login form) |
 | `/accounts/logout/` | Logout | Authenticated users |
-| `/accounts/register/` | Registration (disabled, redirects to login) | Redirects to login |
-| `/staff/` | Staff dashboard | Staff only (`is_staff`) |
+| `/accounts/register/` | Registration (disabled) | Redirects to login |
+| `/staff/` | Staff dashboard | Staff only |
 | `/staff/data/summary/` | Summary stats JSON | Staff only |
-| `/staff/data/ratings/` | Movie ratings chart JSON | Staff only |
-| `/staff/data/sentiment/` | Sentiment by movie JSON | Staff only |
-| `/staff/data/trends/` | Feedback trends JSON | Staff only |
-| `/staff/movies/` | Staff movie management list | Staff only |
-| `/staff/movies/add/` | Add movie | Staff only |
-| `/staff/movies/<pk>/edit/` | Edit movie | Staff only |
-| `/staff/movies/<pk>/delete/` | Delete movie | Staff only |
-| `/staff/movies/<pk>/toggle-publish/` | Publish/unpublish | Staff only |
+| `/staff/data/ratings/` | Perfume ratings chart JSON | Staff only |
+| `/staff/data/sentiment/` | Sentiment by perfume JSON | Staff only |
+| `/staff/data/trends/` | Review trends JSON | Staff only |
+| `/staff/perfumes/` | Staff perfume management list | Staff only |
+| `/staff/perfumes/add/` | Add perfume | Staff only |
+| `/staff/perfumes/<pk>/edit/` | Edit perfume | Staff only |
+| `/staff/perfumes/<pk>/delete/` | Delete perfume | Staff only |
+| `/staff/perfumes/<pk>/toggle-publish/` | Publish/unpublish | Staff only |
 | `/django-admin/` | Django Admin | Staff/superuser only |
 
 ---
 
-## 9. How to Use ReelScope
+## 11. How to Run Tests
 
-### Visitor Workflow
-
-1. **Open the home page** at `http://127.0.0.1:8000/`.
-2. **Browse available movies** — published movies appear as cards with posters, titles, genres, and ratings.
-3. **Select a movie** — click a movie card to view its details.
-4. **Submit feedback** — click "Rate this movie" and enter your username, email, star rating (1–5), and written message. No account required.
-5. **Receive the tracking ID** — after submission, you see a confirmation page with your unique Tracking ID (e.g. `RS-2026-A8K92`). Copy it or note it down.
-6. **Track your submission** — go to `/track/`, enter your Tracking ID, and view your submission details and sentiment result.
-
-### Staff Workflow
-
-1. **Log in** at `http://127.0.0.1:8000/accounts/login/` using staff credentials.
-2. **Open the dashboard** at `http://127.0.0.1:8000/staff/` to see KPIs, charts, and recent feedback.
-3. **Add movies** — go to `/staff/movies/add/` and fill in the movie details.
-4. **Publish movies** — new movies are unpublished by default. Toggle the "Publish publicly" checkbox or use the Publish button in the movie list.
-5. **View feedback** — see all submissions in the dashboard's recent feedback panel or manage movies to see per-movie feedback.
-6. **Review sentiment analysis** — check sentiment breakdown, mismatch counts, and per-movie sentiment data.
-7. **View movie rankings** — see the ranked table of movies based on audience appreciation scores.
-
----
-
-## 10. Database Information
-
-### Database Type
-
-ReelScope uses **SQLite**, a file-based relational database. The database file is stored at:
-
-```
-db.sqlite3
-```
-
-No separate database server (e.g. PostgreSQL, MySQL, MongoDB) is required or used.
-
-### Main Database Models
-
-#### Movie (`movies` app)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `title` | CharField | Movie title |
-| `slug` | SlugField | URL-friendly identifier (auto-generated) |
-| `description` | TextField | Movie description |
-| `poster` | ImageField | Movie poster image (uploaded to `media/posters/`) |
-| `genre` | CharField (choices) | Action, Comedy, Drama, Sci-Fi, Thriller, Horror, Romance, Animation, Documentary |
-| `release_date` | DateField | Release date (cannot be in the future) |
-| `director` | CharField | Director name |
-| `cast` | TextField | Comma-separated cast list |
-| `language` | CharField | Movie language |
-| `is_published` | BooleanField | Whether the movie is visible to public visitors (default: False) |
-| `created_at`, `updated_at` | DateTimeField | Automatic timestamps |
-
-#### Feedback (`feedback` app)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `movie` | ForeignKey → Movie | The movie being reviewed |
-| `username` | CharField | Visitor's name |
-| `email` | EmailField | Visitor's email (never shown publicly) |
-| `rating` | PositiveSmallIntegerField | Star rating (1–5) |
-| `message` | TextField | Written feedback (10–2000 characters) |
-| `tracking_id` | CharField | Unique ID (format: `RS-YYYY-XXXXX`) |
-| `email_sent_at` | DateTimeField | When tracking email was sent |
-| `created_at` | DateTimeField | Submission timestamp |
-
-#### SentimentAnalysis (`feedback` app)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `feedback` | OneToOneField → Feedback | Linked feedback record |
-| `text_sentiment` | CharField | Positive / Neutral / Negative |
-| `text_score` | FloatField | VADER compound score (−1.0 to 1.0) |
-| `rating_sentiment` | CharField | Rating-based sentiment (Positive / Neutral / Negative) |
-| `is_mismatch` | BooleanField | True when text and rating sentiment disagree |
-| `positive_aspects` | JSONField | List of detected positive aspects |
-| `negative_aspects` | JSONField | List of detected negative aspects |
-| `status` | CharField | Pending / Success / Failed |
-| `error_message` | TextField | Error message if analysis failed |
-| `attempts` | PositiveSmallIntegerField | Number of analysis attempts |
-| `analyzed_at` | DateTimeField | When analysis was completed |
-
-#### EmailVerification (`accounts` app)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `user` | OneToOneField → User | Linked Django user |
-| `token` | CharField | Unique verification token |
-| `created_at` | DateTimeField | Token creation time |
-| `expires_at` | DateTimeField | Token expiry (24 hours by default) |
-| `used_at` | DateTimeField | When token was used (nullable) |
-
-### Relationships
-
-- **Movie → Feedback:** One movie can have many feedback submissions (one-to-many, CASCADE delete).
-- **Feedback → SentimentAnalysis:** One feedback has one sentiment analysis (one-to-one, CASCADE delete).
-- **User → EmailVerification:** One user has one email verification record (one-to-one, CASCADE delete).
-
----
-
-## 11. Testing
-
-ReelScope uses Django's built-in test framework. Run the following commands from the project root (with the virtual environment activated):
+ScentScope uses Django's built-in test framework. Run from the project root with the virtual environment activated:
 
 ### System Check
 
@@ -604,147 +486,42 @@ ReelScope uses Django's built-in test framework. Run the following commands from
 python manage.py check
 ```
 
-This verifies that Django's configuration, models, URLs, and database connections are valid. It does not require a database migration.
-
-### Run Tests
+### Run All Tests
 
 ```powershell
 python manage.py test
 ```
 
-This runs all test cases defined in the `tests.py` files of each Django app.
-
-> **Note:** Currently, all `tests.py` files contain only stub imports (`from django.test import TestCase`) with no actual test cases. The test command will run 0 tests. Comprehensive automated tests should be added as part of future development.
+This runs all test cases in the `tests.py` files of each app (perfumes, reviews, analytics, accounts), covering model creation, search/filters, review submission, validation, tracking IDs, sentiment analysis, mismatch detection, ranking calculations, staff authentication, review approval, chart endpoints, access control, and empty-database behavior.
 
 ---
 
-## 12. Troubleshooting
+## 12. Screenshots
 
-### Python command not recognized
+Add screenshots here of:
 
-**Problem:** `python` is not recognised as a command.
-
-**Solution:** Use `py` instead (Windows Python launcher):
-
-```powershell
-py -m venv venv
-.\venv\Scripts\Activate
-py -m pip install -r requirements.txt
-py manage.py runserver
-```
-
-Or ensure Python is installed and added to your system PATH during installation.
-
-### Virtual environment activation problems
-
-**Problem:** `.\venv\Scripts\Activate` fails with a script execution policy error.
-
-**Solution:** Run PowerShell as Administrator and execute:
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-Then retry activation.
-
-### Missing Django modules
-
-**Problem:** `ModuleNotFoundError: No module named 'django'`.
-
-**Solution:** Ensure the virtual environment is activated (look for `(venv)` in the prompt) and install dependencies:
-
-```powershell
-pip install -r requirements.txt
-```
-
-### Migration errors
-
-**Problem:** Errors when running `python manage.py migrate`.
-
-**Solution:** Ensure the virtual environment is activated and all dependencies are installed. If the database is corrupted, delete `db.sqlite3` and re-run migrations:
-
-```powershell
-python manage.py migrate
-python manage.py createsuperuser
-```
-
-### Port 8000 already in use
-
-**Problem:** `Address already in use` when running `runserver`.
-
-**Solution:** Use a different port:
-
-```powershell
-python manage.py runserver 8001
-```
-
-Then open `http://127.0.0.1:8001/`.
-
-### Unable to log in
-
-**Problem:** Login fails with incorrect credentials.
-
-**Solution:**
-- Ensure you created a superuser with `python manage.py createsuperuser`.
-- Passwords are case-sensitive.
-- The user must have `is_staff=True` to access staff pages. Check this in Django Admin at `/django-admin/`.
-
-### Staff dashboard access denied
-
-**Problem:** Redirect to login when accessing `/staff/`.
-
-**Solution:** Your user account does not have staff status. Log in to Django Admin, edit your user, and enable the **Staff status** checkbox.
-
-### Static files not loading
-
-**Problem:** CSS or images appear broken.
-
-**Solution:** In development (`DEBUG=True`), Django serves static files automatically. Ensure `python manage.py runserver` is running. For production, run `python manage.py collectstatic` and configure a web server to serve static files.
-
-### SQLite database problems
-
-**Problem:** Database locked or corrupted.
-
-**Solution:** Ensure no other process is using `db.sqlite3`. Close any database browser tools. For development, you can delete `db.sqlite3` and re-run migrations and createsuperuser.
-
-### Sentiment analysis failures
-
-**Problem:** Feedback submitted but sentiment analysis shows "failed".
-
-**Solution:** This can happen if VADER encounters an unexpected error. Staff can retry failed analyses:
-
-```powershell
-python manage.py retry_failed_sentiment
-```
-
-Or retry individual failed records through the Django Admin at `/django-admin/`.
-
-### `/health` returning 404
-
-ReelScope does not define a `/health` endpoint. A 404 response for `/health` is expected and not a problem for local development unless your deployment environment specifically requires that endpoint.
+- Home page (hero, featured perfume, new arrivals, top rated)
+- Perfume listing page (search, filters, cards)
+- Perfume detail page (image, notes, rating, reviews)
+- Review submission form (6 rating controls, written review)
+- Review confirmation page (Tracking ID)
+- Tracking lookup page
+- Staff dashboard (KPIs, charts, ranking table)
+- Staff perfume management (add/edit/publish)
 
 ---
 
-## 13. Project Limitations and Future Improvements
+## 13. Future Enhancements
 
-### Current Limitations
-
-- **VADER is English-only:** Sentiment analysis is tuned for English text. Malayalam and mixed-language feedback may not be classified accurately.
-- **Sarcasm and irony:** VADER is a lexicon-based tool and does not reliably detect sarcasm, irony, or indirect opinions.
-- **Aspect-based analysis is not implemented:** The system detects overall sentiment but does not extract specific aspects (acting, story, direction, etc.) from feedback text.
-- **Email delivery depends on configuration:** By default, the console email backend prints emails to the terminal. Real email delivery requires SMTP configuration in `.env`.
-- **Public registration is disabled:** Staff accounts can only be created through Django Admin or the createsuperuser command.
-- **No feedback editing or deletion:** Visitors cannot edit or delete submitted feedback after submission.
-- **No CSV/PDF export:** Analytics data cannot be exported from the dashboard.
-
-### Future Improvements (Not Yet Implemented)
-
-- Aspect-based sentiment analysis (extracting opinions about acting, story, direction, etc.)
-- Movie recommendation engine based on audience preferences
-- Genre-wise and language-wise audience preference analysis
+- Perfume recommendation engine based on user preferences
+- Seasonal and occasion-based discovery
 - CSV/PDF export of analytics reports
-- Advanced tracking and notification features
-- Public user profiles and activity history
-- Email delivery of Tracking IDs (currently console backend only in development)
+- Public user profiles and review history
+- Email delivery of Tracking IDs (SMTP configuration required)
+- Image gallery with multiple photos per perfume
+- Brand and family detail pages
+- Advanced sentiment aspects (sillage, longevity, value sub-sentiments)
 
 ---
+
+*ScentScope — Fragrance feedback, decoded. Every rating and review becomes a clear signal.*

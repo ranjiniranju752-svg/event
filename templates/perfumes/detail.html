@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ perfume.perfume_name }} — ScentScope{% endblock %}
+{% block meta_description %}{{ perfume.description|truncatewords:24 }} Share your rating and see what wearers think.{% endblock %}
+{% block body_class %}page-detail{% endblock %}
+
+{% block content %}
+<section class="detail-hero">
+  <div class="detail-backdrop" style="background-image:url('{{ perfume.image.url }}')" aria-hidden="true"></div>
+  <div class="detail-fade" aria-hidden="true"></div>
+
+  <div class="shell detail-hero-inner">
+    <a class="back-link" href="{% url 'perfumes:list' %}">&larr; All perfumes</a>
+
+    <div class="detail-grid">
+      <div class="detail-image">
+        {% if perfume.image %}
+          <img class="detail-main-image" src="{{ perfume.image.url }}" alt="{{ perfume.perfume_name }} by {{ perfume.brand.name }}">
+        {% else %}
+          <img class="detail-main-image" src="{% static 'images/perfume-placeholder.svg' %}" alt="No image for {{ perfume.perfume_name }}">
+        {% endif %}
+        {% if gallery_images %}
+          <div class="gallery-thumbs">
+            {% for gi in gallery_images %}
+              <a href="{{ gi.image.url }}" class="gallery-thumb" title="{{ gi.alt_text|default:gi.image.url }}">
+                {% if gi.image %}<img src="{{ gi.image.url }}" alt="{{ gi.alt_text }}">{% else %}<span>✦</span>{% endif %}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="detail-info">
+        <div class="detail-tags">
+          <span class="tag tag-gold">{{ perfume.get_fragrance_family_display }}</span>
+          <span class="tag">{{ perfume.get_concentration_display }}</span>
+          <span class="tag">{{ perfume.get_gender_category_display }}</span>
+          {% if perfume.launch_year %}<span class="tag">{{ perfume.launch_year }}</span>{% endif %}
+          <span class="tag tag-availability">{{ perfume.get_availability_status_display }}</span>
+        </div>
+        <div class="detail-brand">
+          <span class="brand-label">{{ perfume.brand.name }}</span>
+        </div>
+        <h1>{{ perfume.perfume_name }}</h1>
+        <p class="detail-lead">{{ perfume.description|linebreaksbr }}</p>
+
+        <div class="notes">
+          <h3 class="notes-title">Fragrance notes</h3>
+          <div class="notes-row">
+            <div class="note-group note-top">
+              <span class="note-label">Top</span>
+              {% for note in perfume.notes_list.top %}<span class="note-chip">{{ note }}</span>{% endfor %}
+            </div>
+            <div class="note-group note-middle">
+              <span class="note-label">Middle</span>
+              {% for note in perfume.notes_list.middle %}<span class="note-chip">{{ note }}</span>{% endfor %}
+            </div>
+            <div class="note-group note-base">
+              <span class="note-label">Base</span>
+              {% for note in perfume.notes_list.base %}<span class="note-chip">{{ note }}</span>{% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-score">
+          <div class="score-big">
+            {% if perfume.average_rating %}{{ perfume.average_rating|floatformat:1 }}{% else %}&mdash;{% endif %}
+            <span>/5</span>
+          </div>
+          <div class="score-meta">
+            <span class="star-row" aria-hidden="true">
+              {% for i in "12345" %}
+                <span class="{% if perfume.average_rating and perfume.average_rating >= forloop.counter %}is-filled{% endif %}">★</span>
+              {% endfor %}
+            </span>
+            <span>{{ perfume.review_count }} review{{ perfume.review_count|pluralize }}</span>
+          </div>
+          {% if perfume_ranking and perfume_ranking.ranking_available %}
+            <span class="badge badge-positive">Rank #{{ perfume_ranking.rank }} &middot; Score {{ perfume_ranking.final_score }}</span>
+          {% elif perfume_ranking and not perfume_ranking.ranking_available %}
+            <span class="badge badge-neutral" style="font-size: 0.75rem;">Insufficient data for ranking</span>
+          {% endif %}
+        </div>
+
+        <div class="detail-actions">
+          <a class="btn btn-gold" href="{% url 'perfumes:reviews' perfume.slug %}">Write a review</a>
+          <a class="btn btn-outline" href="#reviews">Read customer reviews</a>
+        </div>
+      </div>
+
+      <aside class="detail-specs">
+        <div class="spec-panel">
+          <h2 class="spec-title">Details</h2>
+          <dl class="spec-list">
+            <div><dt>Brand</dt><dd>{{ perfume.brand.name }}</dd></div>
+            <div><dt>Fragrance family</dt><dd>{{ perfume.get_fragrance_family_display }}</dd></div>
+            <div><dt>Concentration</dt><dd>{{ perfume.get_concentration_display }}</dd></div>
+            <div><dt>Price</dt><dd>{{ perfume.price }}</dd></div>
+            <div><dt>Volume</dt><dd>{{ perfume.volume_ml }} ml</dd></div>
+            <div><dt>Availability</dt><dd>{{ perfume.get_availability_status_display }}</dd></div>
+          </dl>
+        </div>
+
+        <div class="spec-panel spec-traits">
+          <h2 class="spec-title">Performance</h2>
+          <dl class="spec-list">
+            <div><dt>Longevity</dt><dd>{{ perfume.get_longevity_category_display }}</dd></div>
+            <div><dt>Sillage</dt><dd>{{ perfume.get_sillage_category_display }}</dd></div>
+          </dl>
+        </div>
+
+        {% if perfume_ranking and perfume_ranking.ranking_available %}
+        <div class="spec-panel spec-ranking">
+          <h2 class="spec-title">Community ranking</h2>
+          <dl class="spec-list">
+            <div><dt>Rank</dt><dd><strong>#{{ perfume_ranking.rank }}</strong></dd></div>
+            <div><dt>Score</dt><dd>{{ perfume_ranking.final_score }} / 100</dd></div>
+            <div><dt>Based on</dt><dd>{{ perfume_ranking.total_reviews }} reviews</dd></div>
+          </dl>
+          <p class="spec-footnote">Scores combine ratings, sentiment, longevity, projection and value for money.</p>
+        </div>
+        {% endif %}
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="reviews">
+  <div class="shell detail-body">
+    <div class="detail-main">
+      <div class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Community pulse</p>
+            <h2>How the room feels</h2>
+          </div>
+          <span class="review-count">{{ sentiment.total }} analysed review{{ sentiment.total|pluralize }}</span>
+        </div>
+
+        {% if sentiment.total %}
+          <div class="sentiment-meter" role="img" aria-label="Positive {{ sentiment.percentages.positive }} percent, neutral {{ sentiment.percentages.neutral }} percent, negative {{ sentiment.percentages.negative }} percent">
+            {% if sentiment.percentages.positive %}<span class="meter-seg is-positive" style="width:{{ sentiment.percentages.positive }}%"></span>{% endif %}
+            {% if sentiment.percentages.neutral %}<span class="meter-seg is-neutral" style="width:{{ sentiment.percentages.neutral }}%"></span>{% endif %}
+            {% if sentiment.percentages.negative %}<span class="meter-seg is-negative" style="width:{{ sentiment.percentages.negative }}%"></span>{% endif %}
+          </div>
+          <div class="sentiment-legend">
+            <span><i class="dot is-positive"></i>Positive <strong>{{ sentiment.counts.positive }}</strong></span>
+            <span><i class="dot is-neutral"></i>Neutral <strong>{{ sentiment.counts.neutral }}</strong></span>
+            <span><i class="dot is-negative"></i>Negative <strong>{{ sentiment.counts.negative }}</strong></span>
+          </div>
+
+          <div class="aspect-columns">
+            <div>
+              <h3 class="aspect-title">What wearers praise</h3>
+              {% if aspects.positive %}
+                <div class="tag-list">
+                  {% for name, count in aspects.positive %}
+                    <span class="aspect-chip is-positive">{{ name }} <em>{{ count }}</em></span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="muted">No recurring praise has been detected yet.</p>
+              {% endif %}
+            </div>
+            <div>
+              <h3 class="aspect-title">What wearers critique</h3>
+              {% if aspects.negative %}
+                <div class="tag-list">
+                  {% for name, count in aspects.negative %}
+                    <span class="aspect-chip is-negative">{{ name }} <em>{{ count }}</em></span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="muted">No recurring critiques have been detected yet.</p>
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          <p class="muted">No analysed reviews yet. The first review will light this up.</p>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Customer reviews</p>
+            <h2>What people are saying</h2>
+          </div>
+          <span class="review-count">{{ review_total }} total</span>
+        </div>
+
+        {% if recent_reviews %}
+          <div class="review-list">
+            {% for item in recent_reviews %}
+              <article class="review-item">
+                <header class="review-head">
+                  <div class="review-author">
+                    <span class="avatar" aria-hidden="true">{{ item.reviewer_name|first|upper }}</span>
+                    <div>
+                      <strong>{{ item.reviewer_name }}</strong>
+                      <span class="review-date">{{ item.created_at|date:"M j, Y" }}</span>
+                    </div>
+                  </div>
+                  <div class="review-badges">
+                    <span class="stars-inline" aria-label="{{ item.overall_rating }} out of 5">
+                      {% for i in "12345" %}<span class="{% if forloop.counter <= item.overall_rating %}is-filled{% endif %}">★</span>{% endfor %}
+                    </span>
+                    {% include "partials/sentiment_badge.html" with analysis=item.sentiment %}
+                  </div>
+                </header>
+                <p class="review-message">{{ item.written_review }}</p>
+                {% if item.sentiment.positive_keywords or item.sentiment.negative_keywords %}
+                  <div class="tag-list tag-list-tight">
+                    {% for keyword in item.sentiment.positive_keywords %}
+                      <span class="aspect-chip is-positive">{{ keyword }}</span>
+                    {% endfor %}
+                    {% for keyword in item.sentiment.negative_keywords %}
+                      <span class="aspect-chip is-negative">{{ keyword }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                <div class="review-aspects">
+                  <span class="aspect-mini"><strong>Longevity:</strong> {{ item.longevity_rating }}/5</span>
+                  <span class="aspect-mini"><strong>Projection:</strong> {{ item.projection_rating }}/5</span>
+                  <span class="aspect-mini"><strong>Sillage:</strong> {{ item.sillage_rating }}/5</span>
+                  <span class="aspect-mini"><strong>Fragrance:</strong> {{ item.fragrance_rating }}/5</span>
+                  <span class="aspect-mini"><strong>Value:</strong> {{ item.value_for_money_rating }}/5</span>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+          {% if review_total > recent_reviews|length %}
+            <p class="panel-footnote">Showing the {{ recent_reviews|length }} most recent reviews. Emails are never displayed.</p>
+          {% endif %}
+        {% else %}
+          <div class="empty-inline">
+            <p>No reviews yet — your take could be the first.</p>
+            <a class="btn btn-ghost btn-sm" href="{% url 'perfumes:reviews' perfume.slug %}">Write the first review</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <aside class="detail-aside">
+      <div class="panel cta-panel">
+        <p class="eyebrow">Your turn</p>
+        <h2>Did it work for you?</h2>
+        <p>Rate {{ perfume.perfume_name }} and tell us what stayed with you.</p>
+        <a class="btn btn-gold btn-block" href="{% url 'perfumes:reviews' perfume.slug %}">Share your review</a>
+        <p class="hint">No account needed. You get a Tracking ID after submitting.</p>
+      </div>
+
+      <div class="panel">
+        <h2 class="aside-title">About {{ perfume.perfume_name }}</h2>
+        <p class="about-text">{{ perfume.description }}</p>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

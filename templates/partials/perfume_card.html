@@ -1,0 +1,28 @@
+{% load static %}
+<article class="perfume-card">
+  <a class="perfume-card-link" href="{{ perfume.get_absolute_url }}" aria-label="{{ perfume.perfume_name }} — view details">
+    <div class="perfume-card-image">
+      {% if perfume.image %}
+        <img src="{{ perfume.image.url }}" alt="{{ perfume.perfume_name }}" loading="lazy">
+      {% else %}
+        <img src="{% static 'images/perfume-placeholder.svg' %}" alt="No image available for {{ perfume.perfume_name }}" loading="lazy">
+      {% endif %}
+      <span class="perfume-card-family">{{ perfume.get_fragrance_family_display }}</span>
+      {% if perfume.average_rating %}
+        <span class="perfume-card-score">★ {{ perfume.average_rating|floatformat:1 }}</span>
+      {% endif %}
+      <span class="perfume-card-overlay">
+        <span class="perfume-card-cta">View &amp; review</span>
+      </span>
+    </div>
+    <div class="perfume-card-body">
+      <h3><a href="{{ perfume.get_absolute_url }}">{{ perfume.perfume_name }}</a></h3>
+      <p class="perfume-card-meta">{{ perfume.brand.name }} &middot; {{ perfume.get_concentration_display }}</p>
+      {% if perfume.review_count %}
+        <p class="perfume-card-count">{{ perfume.review_count }} review{{ perfume.review_count|pluralize }}</p>
+      {% else %}
+        <p class="perfume-card-count is-muted">Be the first to review</p>
+      {% endif %}
+    </div>
+  </a>
+</article>
